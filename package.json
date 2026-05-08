@@ -1,3 +1,58 @@
+Έχετε 3 νέα μηνύματα.
+
+Μετάβαση απευθείας στο περιεχόμενο
+Χρήση του Gmail με αναγνώστες οθόνης
+Συζητήσεις
+
+Μη αναγνωσμένα
+ 
+1–23 από 23
+ 
+
+Όλα τα υπόλοιπα
+ 
+1–25 από 2.821
+ 
+εγώ
+Check out finals
+ - Με εκτίμηση, Λαμπρινού Χριστίνα 'use client' import { useSearchParams } from 'next/navigation' import Link from 'next/link' const templates: Record<string, any> = { '
+ 
+12:49 π.μ.
+εγώ
+Checkout
+ - Με εκτίμηση, Λαμπρινού Χριστίνα
+ 
+12:48 π.μ.
+εγώ
+Global
+ - Με εκτίμηση, Λαμπρινού Χριστίνα @tailwind base; @tailwind components; @tailwind utilities; @import url('https://fonts.googleapis.com/css2?family=GFS+Didot&family=Dancing+Script:wght@
+ 
+12:46 π.μ.
+εγώ
+LAyout
+ - Με εκτίμηση, Λαμπρινού Χριστίνα 'use client' import Link from 'next/link' import { useEffect, useState } from 'react' interface Template { id: string emoji: string name: string
+ 
+12:43 π.μ.
+εγώ
+Logo
+ 
+Συνημμένο:
+BEFF01FB-8B33-45BC-B7A6-79D06197B406.PNG
+12:32 π.μ.
+εγώ
+Fff
+ - Με εκτίμηση, Λαμπρινού Χριστίνα npx create-next-app@latest my-little-memory-box
+ 
+11:49 μ.μ.
+εγώ
+(κανένα θέμα)
+ - Με εκτίμηση, Λαμπρινού Χριστίνα 'use client' import { useSearchParams } from 'next/navigation' import Link from 'next/link' const templates: Record<string, any> = { '
+ 
+11:45 μ.μ.
+Χρησιμοποιείται το 89% από τα 100 GB
+Όροι · Απόρρητο · Πολιτικές προγράμματος
+Πρόσφατη δραστηριότητα λογαριασμού: πριν από 0 λεπτά
+Λεπτομέρειες
 {
   "name": "my-little-memory-box",
   "version": "0.1.0",
@@ -6,30 +61,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.105.3",
-    "canvas": "^2.11.2",
-    "cloudinary": "^1.41.0",
-    "next": "16.2.3",
-    "nodemailer": "^8.0.7",
-    "openai": "^4.0.0",
-    "qrcode": "^1.5.4",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "stripe": "^14.0.0"
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/nodemailer": "^8.0.0",
-    "@types/qrcode": "^1.5.6",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.3",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.2.0"
   }
 }
+FINAL-package.json
+Εμφάνιση FINAL-package.json.
