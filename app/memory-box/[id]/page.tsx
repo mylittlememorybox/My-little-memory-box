@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,26 +10,75 @@ const supabase = createClient(
 );
 
 const PAGES = [
-  { key: "cover", title: "Εξωφυλλο" },
-  { key: "first_moments", title: "Οι πρωτες σου στιγμες" },
-  { key: "your_world", title: "Ο κοσμος σου" },
-  { key: "first_achievements", title: "Οι πρωτες σου καταχτησεις" },
-  { key: "first_steps", title: "Τα πρωτα σου βηματα" },
-  { key: "moments", title: "Στιγμες που με εκανες να νιωθω τα παντα" },
-  { key: "hard_days", title: "Οι μερες που δεν ηταν ευκολες" },
-  { key: "personality", title: "Η προσωπικοτητα σου" },
-  { key: "birthdays", title: "Τα γενεθλια σου" },
-  { key: "school", title: "Η πρωτη σου μερα στο σχολειο" },
-  { key: "when_you_grow", title: "Για σενα οταν μεγαλωσεις" },
-  { key: "letter", title: "Ενα γραμμα για σενα" },
+  { key: "cover", title: "Εξώφυλλο" },
+  { key: "first_moments", title: "Οι πρώτες σου στιγμές" },
+  { key: "your_world", title: "Ο κόσμος σου" },
+  { key: "first_achievements", title: "Οι πρώτες σου κατακτήσεις" },
+  { key: "first_steps", title: "Τα πρώτα σου βήματα" },
+  { key: "moments", title: "Στιγμές που με έκανες να νιώθω τα πάντα" },
+  { key: "hard_days", title: "Οι μέρες που δεν ήταν εύκολες" },
+  { key: "personality", title: "Η προσωπικότητά σου" },
+  { key: "birthdays", title: "Τα γενέθλιά σου" },
+  { key: "school", title: "Η πρώτη σου μέρα στο σχολείο" },
+  { key: "when_you_grow", title: "Για σένα όταν μεγαλώσεις" },
+  { key: "letter", title: "Ένα γράμμα για σένα" },
 ];
+
+interface TextFieldProps {
+  pageKey: string;
+  fieldKey: string;
+  placeholder: string;
+  multiline?: boolean;
+  value: string;
+  onChange: (pageKey: string, fieldKey: string, value: string) => void;
+}
+
+function TextField({ pageKey, fieldKey, placeholder, multiline = false, value, onChange }: TextFieldProps) {
+  const [localValue, setLocalValue] = useState(value);
+  const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newValue: string) => {
+    setLocalValue(newValue);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      onChange(pageKey, fieldKey, newValue);
+    }, 1000);
+  };
+
+  const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
+
+  if (multiline) {
+    return (
+      <textarea
+        value={localValue}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        className={baseClass}
+      />
+    );
+  }
+
+  return (
+    <input
+      type="text"
+      value={localValue}
+      onChange={(e) => handleChange(e.target.value)}
+      placeholder={placeholder}
+      className={baseClass}
+    />
+  );
+}
 
 export default function MemoryBookPage({ params }: { params: { id: string } }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [data, setData] = useState<Record<string, Record<string, string>>>({});
   const [photos, setPhotos] = useState<Record<string, Record<string, string>>>({});
   const [flipping, setFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<"left" | "right">("right");
 
   useEffect(() => {
     loadData();
@@ -65,11 +114,13 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
     }
   };
 
-  const saveField = async (pageKey: string, fieldKey: string, value: string) => {
-    const newData = { ...data };
-    if (!newData[pageKey]) newData[pageKey] = {};
-    newData[pageKey][fieldKey] = value;
-    setData(newData);
+  const saveField = useCallback(async (pageKey: string, fieldKey: string, value: string) => {
+    setData(prev => {
+      const newData = { ...prev };
+      if (!newData[pageKey]) newData[pageKey] = {};
+      newData[pageKey][fieldKey] = value;
+      return newData;
+    });
 
     await supabase.from("memory_box_data").upsert({
       memory_box_id: params.id,
@@ -78,7 +129,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       field_value: value,
       updated_at: new Date().toISOString(),
     }, { onConflict: "memory_box_id,page_key,field_key" });
-  };
+  }, [params.id]);
 
   const uploadPhoto = async (pageKey: string, photoKey: string, file: File) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -103,24 +154,24 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         photo_url: photoUrl,
       }, { onConflict: "memory_box_id,page_key,photo_key" });
 
-      const newPhotos = { ...photos };
-      if (!newPhotos[pageKey]) newPhotos[pageKey] = {};
-      newPhotos[pageKey][photoKey] = photoUrl;
-      setPhotos(newPhotos);
+      setPhotos(prev => {
+        const newPhotos = { ...prev };
+        if (!newPhotos[pageKey]) newPhotos[pageKey] = {};
+        newPhotos[pageKey][photoKey] = photoUrl;
+        return newPhotos;
+      });
     }
   };
 
   const goToPage = (direction: "prev" | "next") => {
     if (flipping) return;
     if (direction === "next" && currentPage < PAGES.length - 1) {
-      setFlipDirection("right");
       setFlipping(true);
       setTimeout(() => {
         setCurrentPage(currentPage + 1);
         setFlipping(false);
       }, 400);
     } else if (direction === "prev" && currentPage > 0) {
-      setFlipDirection("left");
       setFlipping(true);
       setTimeout(() => {
         setCurrentPage(currentPage - 1);
@@ -139,7 +190,12 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) uploadPhoto(pageKey, photoKey, file);
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+              alert("Η φωτογραφία δεν πρέπει να ξεπερνά τα 5MB. Παρακαλώ επιλέξτε μικρότερη φωτογραφία.");
+              return;
+            }
+            uploadPhoto(pageKey, photoKey, file);
           }}
         />
         {photoUrl ? (
@@ -147,57 +203,24 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         ) : (
           <div className="w-full h-40 bg-[#F2E8DE] rounded-xl border-4 border-dashed border-[#C4A882] flex flex-col items-center justify-center hover:bg-[#EDE0D4] transition-all">
             <span className="text-3xl mb-2">📸</span>
-            <span className="text-xs text-[#B09880] font-light">Πατηστε για φωτογραφια</span>
+            <span className="text-xs text-[#B09880] font-light">Πατήστε για φωτογραφία</span>
+            <span className="text-xs text-[#C4A882] font-light mt-1">Max 5MB</span>
           </div>
         )}
       </label>
     );
   };
 
-  const TextField = ({ pageKey, fieldKey, placeholder, multiline = false }: {
-    pageKey: string;
-    fieldKey: string;
-    placeholder: string;
-    multiline?: boolean;
-  }) => {
-    const [localValue, setLocalValue] = useState(data[pageKey]?.[fieldKey] || "");
-
-    useEffect(() => {
-      setLocalValue(data[pageKey]?.[fieldKey] || "");
-    }, [pageKey, fieldKey, data]);
-
-    const handleChange = (value: string) => {
-      setLocalValue(value);
-      clearTimeout((window as any)[`timer_${pageKey}_${fieldKey}`]);
-      (window as any)[`timer_${pageKey}_${fieldKey}`] = setTimeout(() => {
-        saveField(pageKey, fieldKey, value);
-      }, 800);
-    };
-
-    const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
-
-    if (multiline) {
-      return (
-        <textarea
-          value={localValue}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder={placeholder}
-          rows={3}
-          className={baseClass}
-        />
-      );
-    }
-
-    return (
-      <input
-        type="text"
-        value={localValue}
-        onChange={(e) => handleChange(e.target.value)}
-        placeholder={placeholder}
-        className={baseClass}
-      />
-    );
-  };
+  const F = ({ pk, fk, ph, ml = false }: { pk: string; fk: string; ph: string; ml?: boolean }) => (
+    <TextField
+      pageKey={pk}
+      fieldKey={fk}
+      placeholder={ph}
+      multiline={ml}
+      value={data[pk]?.[fk] || ""}
+      onChange={saveField}
+    />
+  );
 
   const renderPage = () => {
     const page = PAGES[currentPage];
@@ -208,7 +231,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
             <img src="/logo.png" alt="Logo" className="w-48 h-auto mb-8 drop-shadow-lg" />
             <h1 className="text-3xl font-script text-[#8B5E3C] mb-6 leading-relaxed">
-              Τα πρωτα χρονια ζωης σου
+              Τα πρώτα χρόνια ζωής σου
             </h1>
             <div className="flex items-center gap-2 mb-8">
               <div className="w-12 h-px bg-[#C4A882] opacity-40" />
@@ -216,8 +239,8 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
               <div className="w-12 h-px bg-[#C4A882] opacity-40" />
             </div>
             <div className="w-full max-w-xs">
-              <p className="text-xs tracking-widest uppercase text-[#B09880] mb-2">Ονομα</p>
-              <TextField pageKey="cover" fieldKey="child_name" placeholder="Το ονομα του παιδιου σου..." />
+              <p className="text-xs tracking-widest uppercase text-[#B09880] mb-2">Όνομα</p>
+              <F pk="cover" fk="child_name" ph="Το όνομα του παιδιού σου..." />
             </div>
           </div>
         );
@@ -225,33 +248,33 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "first_moments":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι πρωτες σου στιγμες</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι πρώτες σου στιγμές</h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <PhotoPlaceholder pageKey="first_moments" photoKey="photo1" />
               <PhotoPlaceholder pageKey="first_moments" photoKey="photo2" />
             </div>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που σε κρατησα:</p>
-                <TextField pageKey="first_moments" fieldKey="first_hold" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που σε κράτησα:</p>
+                <F pk="first_moments" fk="first_hold" ph="..." ml />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-[#8B5E3C] mb-1">Ζυγιζες:</p>
-                  <TextField pageKey="first_moments" fieldKey="weight" placeholder="π.χ. 3.2 κιλα" />
+                  <p className="text-xs text-[#8B5E3C] mb-1">Ζύγιζες:</p>
+                  <F pk="first_moments" fk="weight" ph="π.χ. 3.2 κιλά" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#8B5E3C] mb-1">Υψος:</p>
-                  <TextField pageKey="first_moments" fieldKey="height" placeholder="π.χ. 50 εκ" />
+                  <p className="text-xs text-[#8B5E3C] mb-1">Ύψος:</p>
+                  <F pk="first_moments" fk="height" ph="π.χ. 50 εκ" />
                 </div>
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που χαμογελασες:</p>
-                <TextField pageKey="first_moments" fieldKey="first_smile" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που χαμογέλασες:</p>
+                <F pk="first_moments" fk="first_smile" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Οι πρωτες στιγμες στο σπιτι μας:</p>
-                <TextField pageKey="first_moments" fieldKey="first_home" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Οι πρώτες στιγμές στο σπίτι μας:</p>
+                <F pk="first_moments" fk="first_home" ph="..." ml />
               </div>
             </div>
           </div>
@@ -260,20 +283,20 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "your_world":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ο κοσμος σου</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ο κόσμος σου</h2>
             <div className="space-y-4">
               {[
-                { key: "parents", label: "Οι γονεις σου" },
-                { key: "siblings", label: "Τα αδερφια σου" },
-                { key: "uncles", label: "Οι θειοι σου" },
-                { key: "grandparents", label: "Γιαγιαδες & Παππουδες" },
-                { key: "godparents", label: "Νονος/α" },
-                { key: "friends_family", label: "Φιλοι που εγιναν οικογενεια" },
-                { key: "values", label: "Τι αξιες θελουμε να σου δωσουμε" },
+                { key: "parents", label: "Οι γονείς σου" },
+                { key: "siblings", label: "Τα αδέρφια σου" },
+                { key: "uncles", label: "Οι θείοι σου" },
+                { key: "grandparents", label: "Γιαγιάδες & Παππούδες" },
+                { key: "godparents", label: "Νονός/α" },
+                { key: "friends_family", label: "Φίλοι που έγιναν οικογένεια" },
+                { key: "values", label: "Τι αξίες θέλουμε να σου δώσουμε" },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="your_world" fieldKey={item.key} placeholder="..." multiline />
+                  <F pk="your_world" fk={item.key} ph="..." ml />
                   <PhotoPlaceholder pageKey="your_world" photoKey={item.key + "_photo"} />
                 </div>
               ))}
@@ -284,24 +307,24 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "first_achievements":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι πρωτες σου καταχτησεις</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι πρώτες σου κατακτήσεις</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="first_achievements" photoKey="photo1" />
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Το πρωτο σου δοντακι (και το πρωτο μου ξενυχτι 😅):</p>
-                <TextField pageKey="first_achievements" fieldKey="first_tooth" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Το πρώτο σου δοντάκι (και το πρώτο μου ξενύχτι 😅):</p>
+                <F pk="first_achievements" fk="first_tooth" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που μπουσουλησες:</p>
-                <TextField pageKey="first_achievements" fieldKey="first_crawl" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που μπουσούλησες:</p>
+                <F pk="first_achievements" fk="first_crawl" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που σηκωθηκες ορθιο:</p>
-                <TextField pageKey="first_achievements" fieldKey="first_stand" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που σηκώθηκες όρθιο:</p>
+                <F pk="first_achievements" fk="first_stand" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που ετρεξες προς το μερος μου (εκει... ελιωσα ❤️):</p>
-                <TextField pageKey="first_achievements" fieldKey="first_run" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που έτρεξες προς το μέρος μου (εκεί... έλιωσα ❤️):</p>
+                <F pk="first_achievements" fk="first_run" ph="..." ml />
               </div>
               <PhotoPlaceholder pageKey="first_achievements" photoKey="photo2" />
             </div>
@@ -311,28 +334,28 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "first_steps":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα πρωτα σου βηματα προς τον κοσμο</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα πρώτα σου βήματα προς τον κόσμο</h2>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη φορα που επαιξες με αλλα παιδακια:</p>
-                <TextField pageKey="first_steps" fieldKey="first_play" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που έπαιξες με άλλα παιδάκια:</p>
+                <F pk="first_steps" fk="first_play" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρωτη σου φιλια (οπως την ειδα εγω):</p>
-                <TextField pageKey="first_steps" fieldKey="first_friend" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη σου φιλία (όπως την είδα εγώ):</p>
+                <F pk="first_steps" fk="first_friend" ph="..." ml />
               </div>
               <PhotoPlaceholder pageKey="first_steps" photoKey="photo1" />
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Κατι που σε ενθουσιασε πολυ:</p>
-                <TextField pageKey="first_steps" fieldKey="excited" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Κάτι που σε ενθουσίασε πολύ:</p>
+                <F pk="first_steps" fk="excited" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Κατι που σε φοβισε:</p>
-                <TextField pageKey="first_steps" fieldKey="scared" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Κάτι που σε φόβισε:</p>
+                <F pk="first_steps" fk="scared" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμη που καταλαβα οτι μεγαλωνεις:</p>
-                <TextField pageKey="first_steps" fieldKey="growing_up" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμή που κατάλαβα ότι μεγαλώνεις:</p>
+                <F pk="first_steps" fk="growing_up" ph="..." ml />
               </div>
             </div>
           </div>
@@ -341,24 +364,24 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "moments":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Στιγμες που με εκανες να νιωθω τα παντα</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Στιγμές που με έκανες να νιώθω τα πάντα</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="moments" photoKey="photo1" />
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμη που ενιωσα περηφανη για σενα:</p>
-                <TextField pageKey="moments" fieldKey="proud" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμή που ένιωσα περήφανη για σένα:</p>
+                <F pk="moments" fk="proud" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Κατι μικρο που για μενα ηταν τεραστιο:</p>
-                <TextField pageKey="moments" fieldKey="small_big" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Κάτι μικρό που για μένα ήταν τεράστιο:</p>
+                <F pk="moments" fk="small_big" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Μια αγκαλια που δεν ηθελα να τελειωσει:</p>
-                <TextField pageKey="moments" fieldKey="hug" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Μια αγκαλιά που δεν ήθελα να τελειώσει:</p>
+                <F pk="moments" fk="hug" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμη που σκεφτηκα αυτο ειναι η ευτυχια:</p>
-                <TextField pageKey="moments" fieldKey="happiness" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Η στιγμή που σκέφτηκα αυτό είναι η ευτυχία:</p>
+                <F pk="moments" fk="happiness" ph="..." ml />
               </div>
               <PhotoPlaceholder pageKey="moments" photoKey="photo2" />
             </div>
@@ -368,24 +391,24 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "hard_days":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι μερες που δεν ηταν ευκολες αλλα ηταν δικες μας</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι μέρες που δεν ήταν εύκολες αλλά ήταν δικές μας</h2>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Μια μερα που ενιωσα οτι δεν τα καταφερνα:</p>
-                <TextField pageKey="hard_days" fieldKey="hard_day" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Μια μέρα που ένιωσα ότι δεν τα κατάφερνα:</p>
+                <F pk="hard_days" fk="hard_day" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Μια στιγμη που λυγισα (αλλα δεν το εδειξα):</p>
-                <TextField pageKey="hard_days" fieldKey="broke_down" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Μια στιγμή που λύγισα (αλλά δεν το έδειξα):</p>
+                <F pk="hard_days" fk="broke_down" ph="..." ml />
               </div>
               <PhotoPlaceholder pageKey="hard_days" photoKey="photo1" />
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Κατι που με δυσκολεψε περισσοτερο απ οσο περιμενα:</p>
-                <TextField pageKey="hard_days" fieldKey="difficult" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Κάτι που με δυσκόλεψε περισσότερο απ' όσο περίμενα:</p>
+                <F pk="hard_days" fk="difficult" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Και παρ ολα αυτα... συνεχισα γιατι:</p>
-                <TextField pageKey="hard_days" fieldKey="continued" placeholder="..." multiline />
+                <p className="text-xs text-[#8B5E3C] mb-1">Και παρ' όλα αυτά... συνέχισα γιατί:</p>
+                <F pk="hard_days" fk="continued" ph="..." ml />
               </div>
             </div>
           </div>
@@ -394,19 +417,19 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "personality":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η προσωπικοτητα σου απο τα ματια της μαμας</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η προσωπικότητά σου από τα μάτια της μαμάς</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="personality" photoKey="photo1" />
               {[
-                { key: "laugh", label: "Αυτο που σε κανει να γελας" },
-                { key: "angry", label: "Αυτο που σε θυμωνει" },
-                { key: "calm", label: "Αυτο που σε ηρεμει" },
-                { key: "best_trait", label: "Το πιο ομορφο κομματι του χαρακτηρα σου" },
-                { key: "unique", label: "Κατι που σε κανει μοναδικο πλασμα" },
+                { key: "laugh", label: "Αυτό που σε κάνει να γελάς" },
+                { key: "angry", label: "Αυτό που σε θυμώνει" },
+                { key: "calm", label: "Αυτό που σε ηρεμεί" },
+                { key: "best_trait", label: "Το πιο όμορφο κομμάτι του χαρακτήρα σου" },
+                { key: "unique", label: "Κάτι που σε κάνει μοναδικό πλάσμα" },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="personality" fieldKey={item.key} placeholder="..." multiline />
+                  <F pk="personality" fk={item.key} ph="..." ml />
                 </div>
               ))}
             </div>
@@ -416,20 +439,20 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "birthdays":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα γενεθλια σου 🎉</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα γενέθλιά σου 🎉</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="birthdays" photoKey="photo1" />
               {[1, 2, 3, 4, 5].map((year) => (
                 <div key={year} className="bg-[#F9F2EC] rounded-2xl p-3">
-                  <p className="text-sm font-serif text-[#8B5E3C] mb-2">{year} ετων 🎂</p>
+                  <p className="text-sm font-serif text-[#8B5E3C] mb-2">{year} ετών 🎂</p>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-xs text-[#8B5E3C] mb-1">Εσβησες την τουρτα με:</p>
-                      <TextField pageKey="birthdays" fieldKey={`year${year}_with`} placeholder="..." />
+                      <p className="text-xs text-[#8B5E3C] mb-1">Έσβησες την τούρτα με:</p>
+                      <F pk="birthdays" fk={`year${year}_with`} ph="..." />
                     </div>
                     <div>
-                      <p className="text-xs text-[#8B5E3C] mb-1">Η ευχη μου για σενα:</p>
-                      <TextField pageKey="birthdays" fieldKey={`year${year}_wish`} placeholder="..." multiline />
+                      <p className="text-xs text-[#8B5E3C] mb-1">Η ευχή μου για σένα:</p>
+                      <F pk="birthdays" fk={`year${year}_wish`} ph="..." ml />
                     </div>
                     <PhotoPlaceholder pageKey="birthdays" photoKey={`photo_year${year}`} />
                   </div>
@@ -442,19 +465,19 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "school":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η πρωτη σου μερα στο σχολειο</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η πρώτη σου μέρα στο σχολείο</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="school" photoKey="photo1" />
               {[
-                { key: "i_felt", label: "Και εγω ενιωσα" },
-                { key: "you_looked", label: "Εσυ εδειχνες" },
-                { key: "left_you", label: "Η στιγμη που σε αφησα" },
-                { key: "thought", label: "Η σκεψη που δεν εφυγε απο το μυαλο μου" },
-                { key: "saw_again", label: "Οταν σε ξαναειδα" },
+                { key: "i_felt", label: "Και εγώ ένιωσα" },
+                { key: "you_looked", label: "Εσύ έδειχνες" },
+                { key: "left_you", label: "Η στιγμή που σε άφησα" },
+                { key: "thought", label: "Η σκέψη που δεν έφυγε από το μυαλό μου" },
+                { key: "saw_again", label: "Όταν σε ξαναείδα" },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="school" fieldKey={item.key} placeholder="..." multiline />
+                  <F pk="school" fk={item.key} ph="..." ml />
                 </div>
               ))}
               <PhotoPlaceholder pageKey="school" photoKey="photo2" />
@@ -465,17 +488,17 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "when_you_grow":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Για σενα οταν μεγαλωσεις...</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Για σένα όταν μεγαλώσεις...</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="when_you_grow" photoKey="photo1" />
               {[
-                { key: "life", label: "Αν μπορουσα να σου πω κατι για τη ζωη..." },
-                { key: "protect", label: "Αν μπορουσα να σε προστατεψω απο κατι..." },
-                { key: "thought", label: "Αν μπορουσα να σου αφησω μονο μια σκεψη..." },
+                { key: "life", label: "Αν μπορούσα να σου πω κάτι για τη ζωή..." },
+                { key: "protect", label: "Αν μπορούσα να σε προστατέψω από κάτι..." },
+                { key: "thought", label: "Αν μπορούσα να σου αφήσω μόνο μια σκέψη..." },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}</p>
-                  <TextField pageKey="when_you_grow" fieldKey={item.key} placeholder="..." multiline />
+                  <F pk="when_you_grow" fk={item.key} ph="..." ml />
                 </div>
               ))}
             </div>
@@ -485,10 +508,10 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
       case "letter":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ενα γραμμα για σενα...</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ένα γράμμα για σένα...</h2>
             <PhotoPlaceholder pageKey="letter" photoKey="photo1" />
             <div className="mt-4">
-              <TextField pageKey="letter" fieldKey="letter" placeholder="Αγαπητε/η..." multiline />
+              <F pk="letter" fk="letter" ph="Αγαπητέ/ή..." ml />
             </div>
           </div>
         );
@@ -548,7 +571,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         href="/dashboard"
         className="mt-6 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
       >
-        ← Επιστροφη στο Dashboard
+        ← Επιστροφή στο Dashboard
       </Link>
     </div>
   );
