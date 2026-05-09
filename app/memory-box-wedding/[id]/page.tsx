@@ -379,7 +379,7 @@ export default function MemoryBookWeddingPage({ params }: { params: { id: string
             <PhotoPlaceholder pageKey="feelings" photoKey="photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { key: "main_feeling", label: "Η κυρίαρχη συναίσθηση της ημέρας", ml: true },
+                { key: "main_feeling", label: "Η κυρίαρχη αίσθηση της ημέρας", ml: true },
                 { key: "cried", label: "Η στιγμή που δάκρυσα", ml: true },
                 { key: "laughed", label: "Η στιγμή που γέλασα", ml: true },
                 { key: "unexpected", label: "Κάτι που δεν περίμενα να νιώσω", ml: true },
