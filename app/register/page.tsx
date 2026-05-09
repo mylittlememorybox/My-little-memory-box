@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +11,7 @@ const supabase = createClient(
 );
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -71,35 +73,13 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess(true);
+      router.push("/dashboard");
     } catch (err) {
       setError("Σφαλμα κατα την εγγραφη. Δοκιμαστε ξανα.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
-        <div className="bg-white rounded-3xl shadow-lg p-10 max-w-md w-full text-center">
-          <div className="text-6xl mb-6">✉️</div>
-          <h2 className="text-3xl font-serif text-[#8B5E3C] mb-4">
-            Ελεγξτε το email σας!
-          </h2>
-          <p className="text-[#7A6055] font-light leading-relaxed mb-6">
-            Σας στειλαμε email επιβεβαιωσης στο <strong>{formData.email}</strong>. Πατηστε τον συνδεσμο για να ενεργοποιησετε τον λογαριασμο σας.
-          </p>
-          <Link
-            href="/"
-            className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
-          >
-            Επιστροφη στην αρχικη
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F9F2EC]">
@@ -273,3 +253,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
