@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -21,40 +27,79 @@ export default function RegisterPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
 
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError("Παρακαλώ συμπληρώστε όλα τα πεδία.");
+      setError("Παρακαλω συμπληρωστε ολα τα πεδια.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Οι κωδικοί δεν ταιριάζουν.");
+      setError("Οι κωδικοι δεν ταιριαζουν.");
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.");
+      setError("Ο κωδικος πρεπει να εχει τουλαχιστον 8 χαρακτηρες.");
       return;
     }
 
     if (!consents.terms || !consents.privacy || !consents.dataProcessing || !consents.withdrawal) {
-      setError("Παρακαλώ αποδεχτείτε όλες τις υποχρεωτικές συγκαταθέσεις.");
+      setError("Παρακαλω αποδεχτειτε ολες τις υποχρεωτικες συγκαταθεσεις.");
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            newsletter: consents.newsletter,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError("Σφαλμα κατα την εγγραφη: " + signUpError.message);
+        return;
+      }
+
+      setSuccess(true);
+    } catch (err) {
+      setError("Σφαλμα κατα την εγγραφη. Δοκιμαστε ξανα.");
+    } finally {
       setLoading(false);
-      alert("Ο λογαριασμός σας δημιουργήθηκε!");
-    }, 1500);
+    }
   };
 
-  const handleForgotPassword = () => {
-    alert("Θα σας αποστείλουμε email ανάκτησης κωδικού.");
-  };
+  if (success) {
+    return (
+      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
+        <div className="bg-white rounded-3xl shadow-lg p-10 max-w-md w-full text-center">
+          <div className="text-6xl mb-6">✉️</div>
+          <h2 className="text-3xl font-serif text-[#8B5E3C] mb-4">
+            Ελεγξτε το email σας!
+          </h2>
+          <p className="text-[#7A6055] font-light leading-relaxed mb-6">
+            Σας στειλαμε email επιβεβαιωσης στο <strong>{formData.email}</strong>. Πατηστε τον συνδεσμο για να ενεργοποιησετε τον λογαριασμο σας.
+          </p>
+          <Link
+            href="/"
+            className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+          >
+            Επιστροφη στην αρχικη
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F9F2EC]">
@@ -157,7 +202,7 @@ export default function RegisterPage() {
                 className="mt-1 w-4 h-4 accent-[#C49090] flex-shrink-0"
               />
               <span className="text-sm font-light text-[#7A6055] leading-relaxed">
-                <span className="text-[#C47878]">*</span> Συναινω στη συλλογη και επεξεργασια των προσωπικων μου δεδομενων (ονομα, email, φωτογραφιες) για την παροχη της υπηρεσιας Memory Box, συμφωνα με τον GDPR 2016/679.
+                <span className="text-[#C47878]">*</span> Συναινω στη συλλογη και επεξεργασια των προσωπικων μου δεδομενων για την παροχη της υπηρεσιας Memory Box, συμφωνα με τον GDPR 2016/679.
               </span>
             </label>
 
@@ -181,7 +226,7 @@ export default function RegisterPage() {
                 className="mt-1 w-4 h-4 accent-[#C49090] flex-shrink-0"
               />
               <span className="text-sm font-light text-[#7A6055] leading-relaxed">
-                Επιθυμω να λαμβανω ενημερωτικο newsletter με προσφορες και νεα του My Little Memory Box. (Προαιρετικο)
+                Επιθυμω να λαμβανω ενημερωτικο newsletter με προσφορες και νεα. (Προαιρετικο)
               </span>
             </label>
 
@@ -204,12 +249,12 @@ export default function RegisterPage() {
             {loading ? "Δημιουργια..." : "Δημιουργια Λογαριασμου"}
           </button>
 
-          <button
-            onClick={handleForgotPassword}
-            className="w-full py-3 text-[#C4A882] text-sm font-light hover:text-[#8B5E3C] transition-colors"
+          <Link
+            href="/forgot-password"
+            className="block w-full py-3 text-center text-[#C4A882] text-sm font-light hover:text-[#8B5E3C] transition-colors"
           >
             Ξεχασατε τον κωδικο σας;
-          </button>
+          </Link>
         </div>
 
         <p className="text-center text-sm text-[#B09880] font-light mt-6">
