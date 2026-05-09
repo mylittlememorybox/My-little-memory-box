@@ -126,15 +126,25 @@ function LoginContent() {
           </Link>
         </div>
 
-        <p className="text-center text-sm text-[#B09880] font-light mt-6">
-          Δεν έχετε λογαριασμό;{" "}
-          <Link
-            href={giftToken ? `/register?gift_token=${giftToken}` : "/register"}
-            className="text-[#C4A882] hover:text-[#8B5E3C]"
-          >
-            Δημιουργήστε εδώ
-          </Link>
-        </p>
+        <div className="bg-[#F2E8DE] rounded-3xl p-6 mt-6 text-center">
+          <p className="text-sm text-[#7A6055] font-light mb-4">
+            Δεν έχετε λογαριασμό;
+          </p>
+          <div className="space-y-3">
+            <Link
+              href="/#boxes"
+              className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 transition-all"
+            >
+              🛍️ Αγοράστε ένα Memory Box
+            </Link>
+            <Link
+              href={giftToken ? `/register?gift_token=${giftToken}` : "/register"}
+              className="block w-full py-3 bg-white text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 transition-all border border-[#C4A882]"
+            >
+              📝 Έχετε κάνει αγορά; Εγγραφείτε
+            </Link>
+          </div>
+        </div>
       </div>
 
       <footer className="bg-[#F2E8DE] py-8 px-6 text-center border-t border-[rgba(196,168,130,0.2)] mt-12">
