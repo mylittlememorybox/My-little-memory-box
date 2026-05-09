@@ -1,20 +1,40 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import QRCode from "qrcode";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, memoryBoxId } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
     }
 
-    const giftId = Math.random().toString(36).substring(2, 15);
+    const giftToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
-    const giftUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${giftId}`;
+    if (memoryBoxId) {
+      await supabase
+        .from("memory_boxes")
+        .update({
+          gift_token: giftToken,
+          gift_email: email,
+          gift_expires_at: expiryDate.toISOString(),
+          is_gift: true,
+        })
+        .eq("id", memoryBoxId);
+    }
+
+    const giftUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${giftToken}`;
 
     const qrCodeDataUrl = await QRCode.toDataURL(giftUrl, {
       width: 300,
@@ -56,7 +76,7 @@ export async function POST(request: NextRequest) {
             <img src="cid:qrcode" alt="QR Code" style="width: 200px; height: 200px; margin-bottom: 20px;" />
             <br />
             <a href="${giftUrl}" style="display: inline-block; background-color: #C49090; color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;">
-              Ξεκινήστε το Memory Box σας
+              Ανοίξτε το Memory Box σας
             </a>
           </div>
 
@@ -80,7 +100,7 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, giftToken });
   } catch (error) {
     console.error("Email error:", error);
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
