@@ -238,11 +238,9 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
               ))}
             </ul>
 
-            <div className="p-7 text-center border-t border-[rgba(196,168,130,0.15)]">
-              <div className="text-4xl font-serif font-normal text-[#5C3820] mb-4">
-                <sup className="text-xl">€</sup>
-                {box.price}
-              </div>
+           <div className="text-4xl font-serif font-normal text-[#5C3820] mb-4">
+  {box.price}
+</div>
               <div className="flex flex-col gap-2">
                 <Link
                   href={`/checkout?template=${box.id}`}
