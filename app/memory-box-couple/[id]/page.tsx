@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,17 +10,67 @@ const supabase = createClient(
 );
 
 const PAGES = [
-  { key: "cover", title: "Εξωφυλλο" },
-  { key: "how_we_met", title: "Πως ξεκινησε ολο αυτο" },
-  { key: "him", title: "Αυτος" },
-  { key: "her", title: "Αυτη" },
-  { key: "our_moments", title: "Οι στιγμες μας" },
-  { key: "our_trips", title: "Τα ταξιδια μας" },
-  { key: "hard_days", title: "Οι δυσκολες μερες" },
-  { key: "what_i_love", title: "Αυτο που αγαπω σε σενα" },
-  { key: "our_dreams", title: "Τα ονειρα μας" },
-  { key: "letter", title: "Ενα γραμμα για σενα" },
+  { key: "cover", title: "Εξώφυλλο" },
+  { key: "how_we_met", title: "Πώς ξεκίνησε όλο αυτό" },
+  { key: "him", title: "Αυτός" },
+  { key: "her", title: "Αυτή" },
+  { key: "our_moments", title: "Οι στιγμές μας" },
+  { key: "our_trips", title: "Τα ταξίδια μας" },
+  { key: "hard_days", title: "Οι δύσκολες μέρες" },
+  { key: "what_i_love", title: "Αυτό που αγαπώ σε σένα" },
+  { key: "our_dreams", title: "Τα όνειρά μας" },
+  { key: "letter", title: "Ένα γράμμα για σένα" },
 ];
+
+interface TextFieldProps {
+  pageKey: string;
+  fieldKey: string;
+  placeholder: string;
+  multiline?: boolean;
+  value: string;
+  onChange: (pageKey: string, fieldKey: string, value: string) => void;
+}
+
+function TextField({ pageKey, fieldKey, placeholder, multiline = false, value, onChange }: TextFieldProps) {
+  const [localValue, setLocalValue] = useState(value);
+  const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newValue: string) => {
+    setLocalValue(newValue);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      onChange(pageKey, fieldKey, newValue);
+    }, 1000);
+  };
+
+  const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
+
+  if (multiline) {
+    return (
+      <textarea
+        value={localValue}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        className={baseClass}
+      />
+    );
+  }
+
+  return (
+    <input
+      type="text"
+      value={localValue}
+      onChange={(e) => handleChange(e.target.value)}
+      placeholder={placeholder}
+      className={baseClass}
+    />
+  );
+}
 
 export default function MemoryBookCouplePage({ params }: { params: { id: string } }) {
   const [currentPage, setCurrentPage] = useState(0);
@@ -62,11 +112,13 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
     }
   };
 
-  const saveField = async (pageKey: string, fieldKey: string, value: string) => {
-    const newData = { ...data };
-    if (!newData[pageKey]) newData[pageKey] = {};
-    newData[pageKey][fieldKey] = value;
-    setData(newData);
+  const saveField = useCallback(async (pageKey: string, fieldKey: string, value: string) => {
+    setData(prev => {
+      const newData = { ...prev };
+      if (!newData[pageKey]) newData[pageKey] = {};
+      newData[pageKey][fieldKey] = value;
+      return newData;
+    });
 
     await supabase.from("memory_box_data").upsert({
       memory_box_id: params.id,
@@ -75,7 +127,7 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       field_value: value,
       updated_at: new Date().toISOString(),
     }, { onConflict: "memory_box_id,page_key,field_key" });
-  };
+  }, [params.id]);
 
   const uploadPhoto = async (pageKey: string, photoKey: string, file: File) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -100,10 +152,12 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
         photo_url: photoUrl,
       }, { onConflict: "memory_box_id,page_key,photo_key" });
 
-      const newPhotos = { ...photos };
-      if (!newPhotos[pageKey]) newPhotos[pageKey] = {};
-      newPhotos[pageKey][photoKey] = photoUrl;
-      setPhotos(newPhotos);
+      setPhotos(prev => {
+        const newPhotos = { ...prev };
+        if (!newPhotos[pageKey]) newPhotos[pageKey] = {};
+        newPhotos[pageKey][photoKey] = photoUrl;
+        return newPhotos;
+      });
     }
   };
 
@@ -134,7 +188,12 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) uploadPhoto(pageKey, photoKey, file);
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+              alert("Η φωτογραφία δεν πρέπει να ξεπερνά τα 5MB.");
+              return;
+            }
+            uploadPhoto(pageKey, photoKey, file);
           }}
         />
         {photoUrl ? (
@@ -142,57 +201,24 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
         ) : (
           <div className="w-full h-40 bg-[#F2E8DE] rounded-xl border-4 border-dashed border-[#C4A882] flex flex-col items-center justify-center hover:bg-[#EDE0D4] transition-all">
             <span className="text-3xl mb-2">📸</span>
-            <span className="text-xs text-[#B09880] font-light">Πατηστε για φωτογραφια</span>
+            <span className="text-xs text-[#B09880] font-light">Πατήστε για φωτογραφία</span>
+            <span className="text-xs text-[#C4A882] font-light mt-1">Max 5MB</span>
           </div>
         )}
       </label>
     );
   };
 
-  const TextField = ({ pageKey, fieldKey, placeholder, multiline = false }: {
-    pageKey: string;
-    fieldKey: string;
-    placeholder: string;
-    multiline?: boolean;
-  }) => {
-    const [localValue, setLocalValue] = useState(data[pageKey]?.[fieldKey] || "");
-
-    useEffect(() => {
-      setLocalValue(data[pageKey]?.[fieldKey] || "");
-    }, [pageKey, fieldKey, data]);
-
-    const handleChange = (value: string) => {
-      setLocalValue(value);
-      clearTimeout((window as any)[`timer_${pageKey}_${fieldKey}`]);
-      (window as any)[`timer_${pageKey}_${fieldKey}`] = setTimeout(() => {
-        saveField(pageKey, fieldKey, value);
-      }, 800);
-    };
-
-    const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
-
-    if (multiline) {
-      return (
-        <textarea
-          value={localValue}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder={placeholder}
-          rows={3}
-          className={baseClass}
-        />
-      );
-    }
-
-    return (
-      <input
-        type="text"
-        value={localValue}
-        onChange={(e) => handleChange(e.target.value)}
-        placeholder={placeholder}
-        className={baseClass}
-      />
-    );
-  };
+  const F = ({ pk, fk, ph, ml = false }: { pk: string; fk: string; ph: string; ml?: boolean }) => (
+    <TextField
+      pageKey={pk}
+      fieldKey={fk}
+      placeholder={ph}
+      multiline={ml}
+      value={data[pk]?.[fk] || ""}
+      onChange={saveField}
+    />
+  );
 
   const renderPage = () => {
     const page = PAGES[currentPage];
@@ -202,18 +228,16 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
         return (
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
             <img src="/logo.png" alt="Logo" className="w-48 h-auto mb-6 drop-shadow-lg" />
-            <h1 className="text-3xl font-script text-[#8B5E3C] mb-6">
-              Εγω & Εσυ
-            </h1>
+            <h1 className="text-3xl font-script text-[#8B5E3C] mb-6">Εγώ & Εσύ</h1>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-12 h-px bg-[#C4A882] opacity-40" />
               <span className="text-[#C4A882]">💑</span>
               <div className="w-12 h-px bg-[#C4A882] opacity-40" />
             </div>
             <div className="w-full max-w-xs space-y-3 mb-6">
-              <TextField pageKey="cover" fieldKey="his_name" placeholder="Ονομα του..." />
-              <TextField pageKey="cover" fieldKey="her_name" placeholder="Ονομα της..." />
-              <TextField pageKey="cover" fieldKey="start_date" placeholder="Η ιστορια μας ξεκινησε..." />
+              <F pk="cover" fk="his_name" ph="Όνομα του..." />
+              <F pk="cover" fk="her_name" ph="Όνομα της..." />
+              <F pk="cover" fk="start_date" ph="Η ιστορία μας ξεκίνησε..." />
             </div>
             <PhotoPlaceholder pageKey="cover" photoKey="cover_photo" />
           </div>
@@ -222,21 +246,21 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "how_we_met":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Πως ξεκινησε ολο αυτο</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Πώς ξεκίνησε όλο αυτό</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <PhotoPlaceholder pageKey="how_we_met" photoKey="photo1" />
               <PhotoPlaceholder pageKey="how_we_met" photoKey="photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { key: "how_met", label: "Πως γνωριστηκαμε", multi: true },
-                { key: "first_impression", label: "Η πρωτη μου εντυπωση για σενα", multi: true },
-                { key: "first_date", label: "Η πρωτη μας συναντηση ηταν", multi: true },
-                { key: "realized", label: "Η στιγμη που καταλαβα οτι ησουν ο/η καταλληλος/η", multi: true },
+                { key: "how_met", label: "Πώς γνωριστήκαμε", ml: true },
+                { key: "first_impression", label: "Η πρώτη μου εντύπωση για σένα", ml: true },
+                { key: "first_date", label: "Η πρώτη μας συνάντηση ήταν", ml: true },
+                { key: "realized", label: "Η στιγμή που κατάλαβα ότι ήσουν ο/η κατάλληλος/η", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="how_we_met" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="how_we_met" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -246,20 +270,20 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "him":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτος 💙</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτός 💙</h2>
             <PhotoPlaceholder pageKey="him" photoKey="photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { key: "name", label: "Το ονομα του", multi: false },
-                { key: "crazy_about", label: "Αυτο που με τρελανε σε αυτον", multi: true },
-                { key: "makes_laugh", label: "Αυτο που με κανει να γελαω μαζι του", multi: true },
-                { key: "funny_trait", label: "Το πιο αστειο χαρακτηριστικο του", multi: false },
-                { key: "talent", label: "Το ταλεντο του που με εκπλησσει", multi: false },
-                { key: "love_most", label: "Αυτο που αγαπω περισσοτερο σε αυτον", multi: true },
+                { key: "name", label: "Το όνομά του", ml: false },
+                { key: "crazy_about", label: "Αυτό που με τρέλανε σε αυτόν", ml: true },
+                { key: "makes_laugh", label: "Αυτό που με κάνει να γελάω μαζί του", ml: true },
+                { key: "funny_trait", label: "Το πιο αστείο χαρακτηριστικό του", ml: false },
+                { key: "talent", label: "Το ταλέντο του που με εκπλήσσει", ml: false },
+                { key: "love_most", label: "Αυτό που αγαπώ περισσότερο σε αυτόν", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="him" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="him" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -269,20 +293,20 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "her":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτη 🌸</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτή 🌸</h2>
             <PhotoPlaceholder pageKey="her" photoKey="photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { key: "name", label: "Το ονομα της", multi: false },
-                { key: "crazy_about", label: "Αυτο που με τρελανε σε αυτην", multi: true },
-                { key: "makes_laugh", label: "Αυτο που με κανει να γελαω μαζι της", multi: true },
-                { key: "funny_trait", label: "Το πιο αστειο χαρακτηριστικο της", multi: false },
-                { key: "talent", label: "Το ταλεντο της που με εκπλησσει", multi: false },
-                { key: "love_most", label: "Αυτο που αγαπω περισσοτερο σε αυτην", multi: true },
+                { key: "name", label: "Το όνομά της", ml: false },
+                { key: "crazy_about", label: "Αυτό που με τρέλανε σε αυτήν", ml: true },
+                { key: "makes_laugh", label: "Αυτό που με κάνει να γελάω μαζί της", ml: true },
+                { key: "funny_trait", label: "Το πιο αστείο χαρακτηριστικό της", ml: false },
+                { key: "talent", label: "Το ταλέντο της που με εκπλήσσει", ml: false },
+                { key: "love_most", label: "Αυτό που αγαπώ περισσότερο σε αυτήν", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="her" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="her" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -292,35 +316,34 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "our_moments":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι στιγμες μας</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι στιγμές μας</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <PhotoPlaceholder pageKey="our_moments" photoKey="photo1" />
               <PhotoPlaceholder pageKey="our_moments" photoKey="photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { key: "favorite_moment", label: "Η αγαπημενη μας στιγμη μαζι", multi: true },
-                { key: "unforgettable", label: "Μια στιγμη που δεν θα ξεχασω ποτε", multi: true },
-                { key: "small_big", label: "Κατι μικρο που για μενα ηταν τεραστιο", multi: true },
-                { key: "this_is_love", label: "Η στιγμη που σκεφτηκα αυτο ειναι αγαπη", multi: true },
-                { key: "hug", label: "Μια αγκαλια που δεν ηθελα να τελειωσει", multi: true },
+                { key: "favorite_moment", label: "Η αγαπημένη μας στιγμή μαζί", ml: true },
+                { key: "unforgettable", label: "Μια στιγμή που δεν θα ξεχάσω ποτέ", ml: true },
+                { key: "small_big", label: "Κάτι μικρό που για μένα ήταν τεράστιο", ml: true },
+                { key: "this_is_love", label: "Η στιγμή που σκέφτηκα αυτό είναι αγάπη", ml: true },
+                { key: "hug", label: "Μια αγκαλιά που δεν ήθελα να τελειώσει", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="our_moments" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="our_moments" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
-
               <div className="bg-[#F2E8DE] rounded-2xl p-4 mt-2">
-                <p className="text-xs text-[#8B5E3C] mb-3 font-serif">🎵 Το αγαπημενο μας τραγουδι</p>
+                <p className="text-xs text-[#8B5E3C] mb-3 font-serif">🎵 Το αγαπημένο μας τραγούδι</p>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-[#B09880] mb-1">Τιτλος τραγουδιου:</p>
-                    <TextField pageKey="our_moments" fieldKey="song_title" placeholder="π.χ. Perfect - Ed Sheeran" />
+                    <p className="text-xs text-[#B09880] mb-1">Τίτλος τραγουδιού:</p>
+                    <F pk="our_moments" fk="song_title" ph="π.χ. Perfect - Ed Sheeran" />
                   </div>
                   <div>
-                    <p className="text-xs text-[#B09880] mb-1">Γιατι ειναι το τραγουδι μας:</p>
-                    <TextField pageKey="our_moments" fieldKey="song_reason" placeholder="..." multiline />
+                    <p className="text-xs text-[#B09880] mb-1">Γιατί είναι το τραγούδι μας:</p>
+                    <F pk="our_moments" fk="song_reason" ph="..." ml />
                   </div>
                 </div>
               </div>
@@ -331,21 +354,21 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "our_trips":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα ταξιδια μας ✈️</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα ταξίδια μας ✈️</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <PhotoPlaceholder pageKey="our_trips" photoKey="photo1" />
               <PhotoPlaceholder pageKey="our_trips" photoKey="photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { key: "first_trip", label: "Το πρωτο μας ταξιδι μαζι", multi: true },
-                { key: "favorite_place", label: "Το αγαπημενο μας μερος", multi: false },
-                { key: "funny_moment", label: "Μια αστεια στιγμη σε ταξιδι", multi: true },
-                { key: "dream_trip", label: "Το ταξιδι που θελουμε να κανουμε", multi: false },
+                { key: "first_trip", label: "Το πρώτο μας ταξίδι μαζί", ml: true },
+                { key: "favorite_place", label: "Το αγαπημένο μας μέρος", ml: false },
+                { key: "funny_moment", label: "Μια αστεία στιγμή σε ταξίδι", ml: true },
+                { key: "dream_trip", label: "Το ταξίδι που θέλουμε να κάνουμε", ml: false },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="our_trips" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="our_trips" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -355,18 +378,18 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "hard_days":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι δυσκολες μερες που μας εκαναν πιο δυνατους</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι δύσκολες μέρες που μας έκαναν πιο δυνατούς</h2>
             <PhotoPlaceholder pageKey="hard_days" photoKey="photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { key: "hard_moment", label: "Μια δυσκολη στιγμη που περασαμε μαζι", multi: true },
-                { key: "stronger", label: "Αυτο που μας εκανε πιο δυνατους", multi: true },
-                { key: "trust", label: "Η στιγμη που καταλαβα οτι μπορω να βασιστω σε σενα", multi: true },
-                { key: "continued", label: "Και παρ ολα αυτα... συνεχισαμε γιατι", multi: true },
+                { key: "hard_moment", label: "Μια δύσκολη στιγμή που περάσαμε μαζί", ml: true },
+                { key: "stronger", label: "Αυτό που μας έκανε πιο δυνατούς", ml: true },
+                { key: "trust", label: "Η στιγμή που κατάλαβα ότι μπορώ να βασιστώ σε σένα", ml: true },
+                { key: "continued", label: "Και παρ' όλα αυτά... συνεχίσαμε γιατί", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="hard_days" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="hard_days" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -376,21 +399,21 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "what_i_love":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτο που αγαπω σε σενα ❤️</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτό που αγαπώ σε σένα ❤️</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <PhotoPlaceholder pageKey="what_i_love" photoKey="photo1" />
               <PhotoPlaceholder pageKey="what_i_love" photoKey="photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { key: "three_things", label: "Τρια πραγματα που αγαπω σε σενα", multi: true },
-                { key: "how_you_make_feel", label: "Αυτο που με κανεις να νιωθω", multi: true },
-                { key: "learned", label: "Κατι που εμαθα απο σενα", multi: true },
-                { key: "choose_you", label: "Αυτο που με κανει να σε επιλεγω καθε μερα", multi: true },
+                { key: "three_things", label: "Τρία πράγματα που αγαπώ σε σένα", ml: true },
+                { key: "how_you_make_feel", label: "Αυτό που με κάνεις να νιώθω", ml: true },
+                { key: "learned", label: "Κάτι που έμαθα από σένα", ml: true },
+                { key: "choose_you", label: "Αυτό που με κάνει να σε επιλέγω κάθε μέρα", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="what_i_love" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="what_i_love" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -400,18 +423,18 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "our_dreams":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα ονειρα μας 🌟</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα όνειρά μας 🌟</h2>
             <PhotoPlaceholder pageKey="our_dreams" photoKey="photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { key: "dream", label: "Ενα ονειρο που εχουμε μαζι", multi: true },
-                { key: "bucket_list", label: "Κατι που θελουμε να κανουμε μαζι", multi: true },
-                { key: "future", label: "Που βλεπουμε τον εαυτο μας σε 10 χρονια", multi: true },
-                { key: "promise", label: "Η υποσχεση που δινουμε ο ενας στον αλλον", multi: true },
+                { key: "dream", label: "Ένα όνειρο που έχουμε μαζί", ml: true },
+                { key: "bucket_list", label: "Κάτι που θέλουμε να κάνουμε μαζί", ml: true },
+                { key: "future", label: "Πού βλέπουμε τον εαυτό μας σε 10 χρόνια", ml: true },
+                { key: "promise", label: "Η υπόσχεση που δίνουμε ο ένας στον άλλον", ml: true },
               ].map((item) => (
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <TextField pageKey="our_dreams" fieldKey={item.key} placeholder="..." multiline={item.multi} />
+                  <F pk="our_dreams" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -421,10 +444,10 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
       case "letter":
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
-            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ενα γραμμα για σενα...</h2>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ένα γράμμα για σένα...</h2>
             <PhotoPlaceholder pageKey="letter" photoKey="photo1" />
             <div className="mt-4">
-              <TextField pageKey="letter" fieldKey="letter" placeholder="Αγαπητε/η μου..." multiline />
+              <F pk="letter" fk="letter" ph="Αγάπη μου..." ml />
             </div>
           </div>
         );
@@ -484,7 +507,7 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
         href="/dashboard"
         className="mt-6 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
       >
-        ← Επιστροφη στο Dashboard
+        ← Επιστροφή στο Dashboard
       </Link>
     </div>
   );
