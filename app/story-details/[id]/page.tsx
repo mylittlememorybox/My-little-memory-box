@@ -16,6 +16,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [templateId, setTemplateId] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [formData, setFormData] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
+    setUserEmail(user.email || "");
 
     const { data: box } = await supabase
       .from("memory_boxes")
@@ -66,11 +68,23 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
 
   const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await fetch("/api/send-story-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail,
+          templateId,
+          formData,
+        }),
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    }, 1000);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const Field = ({ label, fieldKey, multiline = false, dropdown = false, options = [] }: {
@@ -162,7 +176,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
           </div>
           <p className="text-sm text-[#B09880] font-light">
-            Συμπληρωστε τα στοιχεια για να δημιουργησουμε το παραμυθι σας
+            Συμπληρωστε τα στοιχεια και θα δημιουργησουμε το παραμυθι σας
           </p>
         </div>
 
@@ -170,25 +184,10 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
           {templateId === "first-years" ? (
             <>
               <Field label="Ονομα παιδιου" fieldKey="child_name" />
-              <Field
-                label="Φυλο"
-                fieldKey="gender"
-                dropdown
-                options={["Κοριτσακι", "Αγορακι"]}
-              />
+              <Field label="Φυλο" fieldKey="gender" dropdown options={["Κοριτσακι", "Αγορακι"]} />
               <Field label="Ηλικια" fieldKey="age" />
-              <Field
-                label="Χρωμα μαλλιων"
-                fieldKey="hair_color"
-                dropdown
-                options={["Καστανο", "Ξανθο", "Χαλκινο", "Μαυρο"]}
-              />
-              <Field
-                label="Χρωμα ματιων"
-                fieldKey="eye_color"
-                dropdown
-                options={["Μαυρα", "Καφε", "Γκρι", "Πρασινα", "Γαλαζια"]}
-              />
+              <Field label="Χρωμα μαλλιων" fieldKey="hair_color" dropdown options={["Καστανο", "Ξανθο", "Χαλκινο", "Μαυρο"]} />
+              <Field label="Χρωμα ματιων" fieldKey="eye_color" dropdown options={["Μαυρα", "Καφε", "Γκρι", "Πρασινα", "Γαλαζια"]} />
               <Field label="Αγαπημενο χρωμα" fieldKey="favorite_color" />
               <Field label="Αγαπημενα πραγματα" fieldKey="favorite_things" multiline />
               <Field label="Αγαπημενο ζωακι" fieldKey="favorite_animal" />
@@ -211,7 +210,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
           {saved && (
             <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
               <p className="text-green-600 text-sm font-light text-center">
-                Αποθηκευτηκε επιτυχως! ✓
+                Αποθηκευτηκε και στειλαμε τα στοιχεια! ✓
               </p>
             </div>
           )}
@@ -221,7 +220,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
             disabled={saving}
             className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50 mb-4"
           >
-            {saving ? "Αποθηκευση..." : "Αποθηκευση Στοιχειων"}
+            {saving ? "Αποστολη..." : "Αποθηκευση και Αποστολη Στοιχειων"}
           </button>
 
           <Link
