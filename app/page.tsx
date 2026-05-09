@@ -10,7 +10,7 @@ interface Template {
   tagline: string;
   description: string;
   features: string[];
-  price: number;
+  price: string;
   stripColor: string;
   accentColor: string;
 }
@@ -46,7 +46,7 @@ const TEMPLATES: Template[] = [
       "Προσωποποιημένο ebook παραμύθι",
       "Εκτυπώσιμο PDF",
     ],
-    price: "24.99€ +ΦΠΑ",
+    price: "24.99€ + ΦΠΑ",
     stripColor: "from-[#C4A882] to-[#D4BC98]",
     accentColor: "#C4A882",
   },
@@ -62,7 +62,7 @@ const TEMPLATES: Template[] = [
       "Ευχές και μηνύματα από αγαπημένα πρόσωπα",
       "Εκτυπώσιμο PDF",
     ],
-    price: "19.99€ +ΦΠΑ",
+    price: "19.99€ + ΦΠΑ",
     stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
     accentColor: "#D4B8A8",
   },
