@@ -1,8 +1,13 @@
-
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface Template {
   id: string;
@@ -37,7 +42,7 @@ const TEMPLATES: Template[] = [
   {
     id: "me-and-you",
     emoji: "💑",
-    name: "Εγώ και Εσύ",
+    name: "Εγώ & Εσύ",
     tagline: "Η ιστορία του ζευγαριού μας",
     description: "Μια συλλογή από τις πιο ιδιαίτερες στιγμές της σχέσης μας.",
     features: [
@@ -71,13 +76,18 @@ const TEMPLATES: Template[] = [
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 30);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
   }, []);
 
   useEffect(() => {
@@ -98,7 +108,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#F9F2EC] text-[#7A6055] font-jost min-h-screen">
-      <Nav scrolled={scrolled} />
+      <Nav scrolled={scrolled} user={user} />
       <HeroSection />
       <TemplatesSection templates={TEMPLATES} />
       <HowItWorksSection />
@@ -107,18 +117,24 @@ export default function HomePage() {
   );
 }
 
-function Nav({ scrolled }: { scrolled: boolean }) {
+function Nav({ scrolled, user }: { scrolled: boolean; user: any }) {
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-100 px-8 py-4 flex justify-center gap-40 transition-all ${
+      className={`fixed top-0 left-0 right-0 z-50 px-8 py-4 flex justify-center gap-40 transition-all ${
         scrolled ? "bg-[rgba(249,242,236,0.96)] backdrop-blur-md shadow-sm" : ""
       }`}
     >
       <div className="flex gap-40">
-        <Link href="/" className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]">
+        <Link
+          href="/"
+          className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]"
+        >
           Αρχική
         </Link>
-        <Link href="#" className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]">
+        <Link
+          href={user ? "/dashboard" : "/login"}
+          className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]"
+        >
           Λογαριασμός μου
         </Link>
       </div>
@@ -149,7 +165,10 @@ function HeroSection() {
         Δημιούργησε το δικό σου Memory Box γεμάτο φωτογραφίες και λόγια αγάπης και χάρισε στο παιδί σου ένα προσωποποιημένο ebook παραμύθι.
       </p>
       <div className="mt-9">
-        <Link href="#boxes" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
+        <Link
+          href="#boxes"
+          className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
+        >
           Δες τα Memory Boxes ↓
         </Link>
       </div>
@@ -179,7 +198,10 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-7 max-w-6xl mx-auto">
         {templates.map((box) => (
-          <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all reveal">
+          <div
+            key={box.id}
+            className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all reveal"
+          >
             <div className={`h-1 bg-gradient-to-r ${box.stripColor}`} />
             <div className="p-8 text-center">
               <div className="text-4xl mb-3">{box.emoji}</div>
@@ -201,10 +223,16 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
                 {box.price}
               </div>
               <div className="flex flex-col gap-2">
-                <Link href={`/checkout?template=${box.id}`} className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all">
+                <Link
+                  href={`/checkout?template=${box.id}`}
+                  className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all"
+                >
                   ✨ Δημιούργησε το δικό σου Memory Box
                 </Link>
-                <Link href={`/checkout?template=${box.id}&gift=true`} className="block w-full py-3 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all">
+                <Link
+                  href={`/checkout?template=${box.id}&gift=true`}
+                  className="block w-full py-3 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all"
+                >
                   🎁 Κάντο Δώρο
                 </Link>
               </div>
