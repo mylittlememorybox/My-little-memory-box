@@ -16,18 +16,21 @@ const TEMPLATE_INFO: Record<string, any> = {
     name: "Τα Πρωτα Χρονια",
     hasStory: true,
     color: "from-[#C49090] to-[#D4ACAC]",
+    bookPath: "memory-box",
   },
   "me-and-you": {
     emoji: "💑",
     name: "Εγω και Εσυ",
     hasStory: true,
     color: "from-[#C4A882] to-[#D4BC98]",
+    bookPath: "memory-box-couple",
   },
   "our-wedding": {
     emoji: "💍",
     name: "Ο Γαμος Μας",
     hasStory: false,
     color: "from-[#D4B8A8] to-[#E8CCC0]",
+    bookPath: "memory-box-wedding",
   },
 };
 
@@ -77,7 +80,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F9F2EC]">
-      {/* HEADER */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="hover:opacity-80 transition-opacity">
@@ -98,7 +100,6 @@ export default function DashboardPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Welcome */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-serif text-[#8B5E3C] mb-3">
             Καλως ηρθατε!
@@ -113,7 +114,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Memory Box Cards */}
         {memoryBoxes.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📦</div>
@@ -136,11 +136,9 @@ export default function DashboardPage() {
                   key={box.id}
                   className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all"
                 >
-                  {/* Top Strip */}
                   <div className={`h-2 bg-gradient-to-r ${info.color}`} />
 
                   <div className="p-6">
-                    {/* Header */}
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-3xl">{info.emoji}</span>
                       <div>
@@ -155,17 +153,14 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Buttons */}
                     <div className="space-y-2">
-                      {/* Memory Box */}
                       <Link
-                        href={`/memory-box/${box.id}`}
+                        href={`/${info.bookPath}/${box.id}`}
                         className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                       >
                         📖 Συμπληρωσε το Memory Box
                       </Link>
 
-                      {/* Story (only for first-years and me-and-you) */}
                       {info.hasStory && (
                         <>
                           <Link
@@ -183,7 +178,6 @@ export default function DashboardPage() {
                         </>
                       )}
 
-                      {/* Download */}
                       {box.status === "completed" && (
                         <button
                           className="block w-full py-3 bg-[#C4A882] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
