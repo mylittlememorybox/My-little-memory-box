@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
@@ -28,7 +28,6 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [data, setData] = useState<Record<string, Record<string, string>>>({});
   const [photos, setPhotos] = useState<Record<string, Record<string, string>>>({});
-  const [saving, setSaving] = useState(false);
   const [flipping, setFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<"left" | "right">("right");
 
@@ -102,7 +101,6 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         page_key: pageKey,
         photo_key: photoKey,
         photo_url: photoUrl,
-        updated_at: new Date().toISOString(),
       }, { onConflict: "memory_box_id,page_key,photo_key" });
 
       const newPhotos = { ...photos };
@@ -162,14 +160,27 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
     placeholder: string;
     multiline?: boolean;
   }) => {
-    const value = data[pageKey]?.[fieldKey] || "";
+    const [localValue, setLocalValue] = useState(data[pageKey]?.[fieldKey] || "");
+
+    useEffect(() => {
+      setLocalValue(data[pageKey]?.[fieldKey] || "");
+    }, [pageKey, fieldKey, data]);
+
+    const handleChange = (value: string) => {
+      setLocalValue(value);
+      clearTimeout((window as any)[`timer_${pageKey}_${fieldKey}`]);
+      (window as any)[`timer_${pageKey}_${fieldKey}`] = setTimeout(() => {
+        saveField(pageKey, fieldKey, value);
+      }, 800);
+    };
+
     const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
 
     if (multiline) {
       return (
         <textarea
-          value={value}
-          onChange={(e) => saveField(pageKey, fieldKey, e.target.value)}
+          value={localValue}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
           className={baseClass}
@@ -180,8 +191,8 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
     return (
       <input
         type="text"
-        value={value}
-        onChange={(e) => saveField(pageKey, fieldKey, e.target.value)}
+        value={localValue}
+        onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         className={baseClass}
       />
@@ -489,41 +500,30 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen bg-[#8B5E3C] flex flex-col items-center justify-center p-4">
-      {/* Book Container */}
       <div
-        className={`relative bg-[#F9F2EC] rounded-lg shadow-2xl w-full max-w-md transition-transform duration-400 ${
-          flipping
-            ? flipDirection === "right"
-              ? "-rotate-y-90"
-              : "rotate-y-90"
-            : "rotate-y-0"
+        className={`relative bg-[#F9F2EC] rounded-lg shadow-2xl w-full max-w-md transition-all duration-400 ${
+          flipping ? "opacity-0 scale-95" : "opacity-100 scale-100"
         }`}
         style={{
           minHeight: "600px",
           boxShadow: "8px 8px 30px rgba(0,0,0,0.4), inset -3px 0 6px rgba(0,0,0,0.1)",
-          perspective: "1000px",
-          transformStyle: "preserve-3d",
         }}
       >
-        {/* Logo Header */}
         <div className="sticky top-0 z-10 bg-[#F9F2EC] pt-4 pb-2 flex justify-center border-b border-[rgba(196,168,130,0.2)]">
           <button onClick={() => setCurrentPage(0)}>
             <img src="/logo.png" alt="Logo" className="w-16 h-auto hover:opacity-80 transition-opacity" />
           </button>
         </div>
 
-        {/* Page Content */}
         <div className="p-4" style={{ minHeight: "520px" }}>
           {renderPage()}
         </div>
 
-        {/* Page Number */}
         <div className="text-center py-2 text-xs text-[#B09880]">
           {currentPage + 1} / {PAGES.length}
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center gap-8 mt-6">
         <button
           onClick={() => goToPage("prev")}
@@ -532,7 +532,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         >
           ←
         </button>
-        <span className="text-white text-sm font-light">
+        <span className="text-white text-sm font-light text-center max-w-xs">
           {PAGES[currentPage].title}
         </span>
         <button
@@ -544,7 +544,6 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         </button>
       </div>
 
-      {/* Back to Dashboard */}
       <Link
         href="/dashboard"
         className="mt-6 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
