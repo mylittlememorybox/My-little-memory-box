@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import QRCode from "qrcode";
