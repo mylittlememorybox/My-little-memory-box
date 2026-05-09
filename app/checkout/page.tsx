@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
 import CheckoutContent from "./checkout-content";
 
 export default function CheckoutPage() {
@@ -10,3 +9,4 @@ export default function CheckoutPage() {
       <CheckoutContent />
     </Suspense>
   );
+}
