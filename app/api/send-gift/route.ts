@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         .eq("id", memoryBoxId);
     }
 
-    const giftUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/gift/${giftToken}`;
+    const giftUrl = `https://mylittlememorybox.gr/gift/${giftToken}`;
 
     const qrCodeDataUrl = await QRCode.toDataURL(giftUrl, {
       width: 300,
