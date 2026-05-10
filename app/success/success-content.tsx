@@ -2,7 +2,13 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
@@ -10,6 +16,28 @@ export default function SuccessContent() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [memoryBoxId, setMemoryBoxId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (type === "gift") {
+      loadLatestMemoryBox();
+    }
+  }, [type]);
+
+  const loadLatestMemoryBox = async () => {
+    const { data } = await supabase
+      .from("memory_boxes")
+      .select("id")
+      .is("gift_token", null)
+      .is("user_id", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (data) {
+      setMemoryBoxId(data.id);
+    }
+  };
 
   const handleSendGift = async () => {
     if (!email) {
@@ -21,7 +49,7 @@ export default function SuccessContent() {
       const response = await fetch("/api/send-gift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, memoryBoxId }),
       });
       if (response.ok) {
         setSent(true);
