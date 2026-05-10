@@ -1,4 +1,4 @@
-mport { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import QRCode from "qrcode";
 import { createClient } from "@supabase/supabase-js";
