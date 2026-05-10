@@ -46,9 +46,13 @@ export default function GiftPage({ params }: { params: { token: string } }) {
     }
 
     setGift(data);
+    setLoading(false);
+  };
 
+  const handleClaim = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+
+    if (user && gift) {
       await supabase
         .from("memory_boxes")
         .update({ user_id: user.id })
@@ -60,11 +64,9 @@ export default function GiftPage({ params }: { params: { token: string } }) {
         "our-wedding": "memory-box-wedding",
       };
 
-      const path = TEMPLATE_PATHS[data.template_id] || "memory-box";
-      router.push(`/${path}/${data.id}`);
+      const path = TEMPLATE_PATHS[gift.template_id] || "memory-box";
+      router.push(`/${path}/${gift.id}`);
     }
-
-    setLoading(false);
   };
 
   const TEMPLATE_NAMES: Record<string, string> = {
