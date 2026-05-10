@@ -1,107 +1,188 @@
-import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import QRCode from "qrcode";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 const supabase = createClient(
-  "https://jephluxdlbabgufalgtz.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export async function POST(request: NextRequest) {
-  try {
-    const { email, memoryBoxId } = await request.json();
+export default function GiftPage({ params }: { params: { token: string } }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [gift, setGift] = useState<any>(null);
+  const [expired, setExpired] = useState(false);
+  const [daysLeft, setDaysLeft] = useState(0);
 
-    if (!email) {
-      return NextResponse.json({ error: "Email required" }, { status: 400 });
+  useEffect(() => {
+    loadGift();
+  }, []);
+
+  const loadGift = async () => {
+    const { data } = await supabase
+      .from("memory_boxes")
+      .select("*")
+      .eq("gift_token", params.token)
+      .eq("is_gift", true)
+      .single();
+
+    if (!data) {
+      setLoading(false);
+      return;
     }
 
-    const giftToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiryDate = new Date(data.gift_expires_at);
+    const now = new Date();
+    const diffTime = expiryDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30);
+    if (diffDays <= 0) {
+      setExpired(true);
+    } else {
+      setDaysLeft(diffDays);
+    }
 
-    if (memoryBoxId) {
+    setGift(data);
+    setLoading(false);
+  };
+
+  const handleClaim = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && gift) {
       await supabase
         .from("memory_boxes")
-        .update({
-          gift_token: giftToken,
-          gift_email: email,
-          gift_expires_at: expiryDate.toISOString(),
-          is_gift: true,
-        })
-        .eq("id", memoryBoxId);
+        .update({ user_id: user.id })
+        .eq("gift_token", params.token);
+
+      const TEMPLATE_PATHS: Record<string, string> = {
+        "first-years": "memory-box",
+        "me-and-you": "memory-box-couple",
+        "our-wedding": "memory-box-wedding",
+      };
+
+      const path = TEMPLATE_PATHS[gift.template_id] || "memory-box";
+      router.push(`/${path}/${gift.id}`);
     }
+  };
 
-    const giftUrl = `https://mylittlememorybox.gr/gift/${giftToken}`;
+  const TEMPLATE_NAMES: Record<string, string> = {
+    "first-years": "Τα Πρώτα Χρόνια 🍼",
+    "me-and-you": "Εγώ & Εσύ 💑",
+    "our-wedding": "Ο Γάμος Μας 💍",
+  };
 
-    const qrCodeDataUrl = await QRCode.toDataURL(giftUrl, {
-      width: 300,
-      margin: 2,
-      color: {
-        dark: "#8B5E3C",
-        light: "#F9F2EC",
-      },
-    });
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center">
+        <p className="text-[#B09880] font-light">Φόρτωση...</p>
+      </div>
+    );
+  }
 
-    const base64QR = qrCodeDataUrl.split(",")[1];
+  if (!gift) {
+    return (
+      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h1 className="text-2xl font-serif text-[#8B5E3C] mb-4">
+            Το δώρο δεν βρέθηκε
+          </h1>
+          <p className="text-[#B09880] font-light mb-6">
+            Ο σύνδεσμος δώρου δεν είναι έγκυρος.
+          </p>
+          <Link href="/" className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all">
+            Επιστροφή στην αρχική
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.zoho.eu",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.ZOHO_EMAIL,
-        pass: process.env.ZOHO_APP_PASSWORD,
-      },
-    });
+  if (expired) {
+    return (
+      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⏰</div>
+          <h1 className="text-2xl font-serif text-[#8B5E3C] mb-4">
+            Το δώρο έχει λήξει
+          </h1>
+          <p className="text-[#B09880] font-light mb-6">
+            Ο σύνδεσμος δώρου έχει λήξει. Επικοινωνήστε μαζί μας.
+          </p>
+          <a href="mailto:info@mylittlememorybox.gr" className="text-[#C4A882] hover:text-[#8B5E3C]">
+            info@mylittlememorybox.gr
+          </a>
+        </div>
+      </div>
+    );
+  }
 
-    await transporter.sendMail({
-      from: `"My Little Memory Box" <${process.env.ZOHO_EMAIL}>`,
-      to: email,
-      subject: "Το δώρο σας από το My Little Memory Box 🎁",
-      html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background-color: #F9F2EC; padding: 40px; border-radius: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #8B5E3C; font-size: 28px; margin-bottom: 10px;">My Little Memory Box</h1>
-            <p style="color: #C4A882; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">Ένα ξεχωριστό δώρο για εσάς</p>
+  return (
+    <div className="min-h-screen bg-[#F9F2EC]">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-2xl mx-auto px-6 py-6 flex justify-center">
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <img src="/logo.png" alt="My Little Memory Box" className="w-24 h-auto object-contain" />
+          </Link>
+        </div>
+      </header>
+
+      <div className="pt-12 pb-20 px-6 max-w-xl mx-auto text-center">
+        <div className="text-7xl mb-6">🎁</div>
+
+        <h1 className="text-4xl font-serif text-[#8B5E3C] mb-4">
+          Σου χαρίζουν ένα Memory Box!
+        </h1>
+
+        <div className="flex items-center justify-center gap-2 my-6">
+          <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+          <span className="text-[#C4A882] text-xs">✦</span>
+          <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-lg p-8 mb-6">
+          <div className="text-3xl mb-3">
+            {TEMPLATE_NAMES[gift.template_id]}
+          </div>
+          <p className="text-[#7A6055] font-light leading-relaxed mb-6">
+            Κάποιος σε σκέφτηκε και σου χάρισε ένα ξεχωριστό δώρο. Δημιούργησε τον λογαριασμό σου για να το ανοίξεις και να αρχίσεις να το συμπληρώνεις!
+          </p>
+
+          <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-6">
+            <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-1">Το δώρο σου λήγει σε</p>
+            <p className="text-3xl font-serif text-[#8B5E3C]">{daysLeft} μέρες</p>
           </div>
 
-          <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 20px;">
-            <p style="color: #8B5E3C; font-size: 18px; margin-bottom: 20px;">Έχετε λάβει ένα Memory Box! 🎁</p>
-            <p style="color: #7A6055; font-size: 14px; line-height: 1.8; margin-bottom: 30px;">
-              Σκανάρετε το QR code ή πατήστε το link για να δημιουργήσετε τον λογαριασμό σας και να ξεκινήσετε το Memory Box σας.
-            </p>
-            <img src="cid:qrcode" alt="QR Code" style="width: 200px; height: 200px; margin-bottom: 20px;" />
-            <br />
-            <a href="${giftUrl}" style="display: inline-block; background-color: #C49090; color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;">
-              Ανοίξτε το Memory Box σας
-            </a>
-          </div>
-
-          <div style="text-align: center; margin-top: 20px;">
-            <p style="color: #B09880; font-size: 12px;">
-              Το link ισχύει έως: ${expiryDate.toLocaleDateString("el-GR")}
-            </p>
-            <p style="color: #B09880; font-size: 11px; margin-top: 10px;">
-              © 2025 My Little Memory Box · info@mylittlememorybox.gr
-            </p>
+          <div className="space-y-3">
+            <Link
+              href={`/register?gift_token=${params.token}`}
+              className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+            >
+              ✨ Δημιούργησε τον λογαριασμό σου
+            </Link>
+            <Link
+              href={`/login?gift_token=${params.token}`}
+              className="block w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+            >
+              Έχω ήδη λογαριασμό
+            </Link>
           </div>
         </div>
-      `,
-      attachments: [
-        {
-          filename: "qrcode.png",
-          content: base64QR,
-          encoding: "base64",
-          cid: "qrcode",
-        },
-      ],
-    });
 
-    return NextResponse.json({ success: true, giftToken });
-  } catch (error) {
-    console.error("Email error:", error);
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
-  }
+        <p className="text-xs text-[#B09880] font-light">
+          Έχεις {daysLeft} μέρες για να ανοίξεις το δώρο σου
+        </p>
+      </div>
+
+      <footer className="bg-[#F2E8DE] py-8 px-6 text-center border-t border-[rgba(196,168,130,0.2)] mt-12">
+        <p className="text-xs font-light text-[#B09880]">
+          © 2025 My Little Memory Box - Όλα τα δικαιώματα διατηρούνται
+        </p>
+      </footer>
+    </div>
+  );
 }
