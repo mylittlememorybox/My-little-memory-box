@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const PAGES = [
@@ -11,7 +11,7 @@ const PAGES = [
   { key: "locked", title: "Κλειδωμένο" },
 ];
 
-const TYPED_CONTENT: Record<string, Record<string, string>> = {
+const TYPED_CONTENT: Record<string, any> = {
   cover: {
     groom_name: "Νίκος",
     bride_name: "Μαρία",
@@ -52,11 +52,9 @@ function TypedText({ text, delay = 0 }: { text: string; delay?: number }) {
   useEffect(() => {
     if (!started) return;
     if (displayed.length >= text.length) return;
-
     const timer = setTimeout(() => {
       setDisplayed(text.slice(0, displayed.length + 1));
     }, 35);
-
     return () => clearTimeout(timer);
   }, [displayed, started, text]);
 
@@ -73,19 +71,16 @@ function TypedText({ text, delay = 0 }: { text: string; delay?: number }) {
 export default function WeddingPreviewPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [flipping, setFlipping] = useState(false);
-  const [flipDir, setFlipDir] = useState<"left" | "right">("right");
 
   const goToPage = (direction: "prev" | "next") => {
     if (flipping) return;
     if (direction === "next" && currentPage < PAGES.length - 1) {
-      setFlipDir("right");
       setFlipping(true);
       setTimeout(() => {
         setCurrentPage(currentPage + 1);
         setFlipping(false);
       }, 400);
     } else if (direction === "prev" && currentPage > 0) {
-      setFlipDir("left");
       setFlipping(true);
       setTimeout(() => {
         setCurrentPage(currentPage - 1);
@@ -102,6 +97,8 @@ export default function WeddingPreviewPage() {
       </div>
     </div>
   );
+
+  const imgClass = "w-full h-36 object-contain bg-[#F2E8DE] rounded-xl border-4 border-white shadow-md";
 
   const renderPage = () => {
     const page = PAGES[currentPage];
@@ -126,11 +123,7 @@ export default function WeddingPreviewPage() {
               <Field label="Ημερομηνία γάμου" value={TYPED_CONTENT.cover.wedding_date} delay={1300} />
               <Field label="Τοποθεσία γάμου" value={TYPED_CONTENT.cover.wedding_location} delay={1800} />
             </div>
-            <img
-              src="/preview/wedding/wedding-cover.jpg"
-              alt="Wedding Cover"
-              className="w-full h-40 object-cover rounded-2xl border-4 border-white shadow-md"
-            />
+            <img src="/preview/wedding/wedding-cover.jpg" alt="Wedding Cover" className={imgClass} />
           </div>
         );
 
@@ -142,8 +135,8 @@ export default function WeddingPreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η πρόταση γάμου 💍</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/wedding/wedding-proposal-1.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
-              <img src="/preview/wedding/wedding-proposal-2.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
+              <img src="/preview/wedding/wedding-proposal-1.jpg" alt="" className={imgClass} />
+              <img src="/preview/wedding/wedding-proposal-2.jpg" alt="" className={imgClass} />
             </div>
             <Field label="Πού έγινε η πρόταση" value={TYPED_CONTENT.proposal.where} delay={200} />
             <Field label="Πώς το σχεδίασες" value={TYPED_CONTENT.proposal.planned} delay={600} />
@@ -161,8 +154,8 @@ export default function WeddingPreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η στιγμή που σε είδα</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/wedding/wedding-saw-you-1.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
-              <img src="/preview/wedding/wedding-saw-you-2.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
+              <img src="/preview/wedding/wedding-saw-you-1.jpg" alt="" className={imgClass} />
+              <img src="/preview/wedding/wedding-saw-you-2.jpg" alt="" className={imgClass} />
             </div>
             <Field label="Η πρώτη μου σκέψη όταν σε είδα" value={TYPED_CONTENT.saw_you.first_thought} delay={200} />
             <Field label="Πώς ήσουν ντυμένος" value={TYPED_CONTENT.saw_you.outfit} delay={800} />
@@ -179,8 +172,8 @@ export default function WeddingPreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Το γλέντι 🎉</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/wedding/wedding-party-1.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
-              <img src="/preview/wedding/wedding-party-2.jpg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
+              <img src="/preview/wedding/wedding-party-1.jpg" alt="" className={imgClass} />
+              <img src="/preview/wedding/wedding-party-2.jpg" alt="" className={imgClass} />
             </div>
             <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-4">
               <p className="text-xs text-[#8B5E3C] mb-2 font-serif">🎵 Το τραγούδι του πρώτου μας χορού</p>
@@ -208,7 +201,6 @@ export default function WeddingPreviewPage() {
             <p className="text-[#B09880] font-light mb-4 text-sm leading-relaxed">
               Οι υπόλοιπες σελίδες ξεκλειδώνονται με την αγορά σου!
             </p>
-
             <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-6 w-full text-left">
               <p className="text-xs text-[#8B5E3C] font-serif mb-2">Περιλαμβάνει:</p>
               <ul className="space-y-1 text-xs text-[#7A6055] font-light">
@@ -221,7 +213,6 @@ export default function WeddingPreviewPage() {
                 <li>✦ Ένα γράμμα για σένα</li>
               </ul>
             </div>
-
             <Link
               href="/checkout?template=our-wedding"
               className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mb-3"
