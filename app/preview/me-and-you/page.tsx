@@ -9,6 +9,7 @@ const PAGES = [
   { key: "him", title: "Αυτός" },
   { key: "her", title: "Αυτή" },
   { key: "moments", title: "Οι στιγμές μας" },
+  { key: "trips", title: "Τα ταξίδια μας" },
   { key: "locked", title: "Κλειδωμένο" },
 ];
 
@@ -47,6 +48,12 @@ const TYPED_CONTENT: Record<string, any> = {
     this_is_love: "Μια βαρετή Κυριακή στο σπίτι που δεν κάναμε τίποτα και ήταν τέλεια.",
     song_title: "Photograph - Ed Sheeran",
     song_reason: "Το ακούσαμε στο πρώτο μας ταξίδι και από τότε είναι δικό μας.",
+  },
+  trips: {
+    first_trip: "Πήγαμε Θεσσαλονίκη για ένα Σαββατοκύριακο. Χάθηκαμε, βρήκαμε τυχαία μια ταβέρνα και ήταν η καλύτερη βραδιά.",
+    favorite_place: "Η Κρήτη. Πάντα η Κρήτη.",
+    funny_moment: "Πήραμε λάθος δρόμο για δύο ώρες και καταλήξαμε σε ένα χωριό που δεν υπήρχε στο χάρτη.",
+    dream_trip: "Ιαπωνία. Το λέμε κάθε χρόνο και κάποτε θα το κάνουμε.",
   },
 };
 
@@ -217,6 +224,24 @@ export default function CouplePreviewPage() {
           </div>
         );
 
+      case "trips":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4 relative">
+            <div className="absolute top-2 right-2 bg-[rgba(139,94,60,0.15)] text-[#8B5E3C] text-xs px-3 py-1 rounded-full font-light tracking-widest uppercase">
+              Preview
+            </div>
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα ταξίδια μας ✈️</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <img src="/preview/couple/couple-trips-1.jpeg" alt="" className={imgClass} />
+              <img src="/preview/couple/couple-trips-2.jpeg" alt="" className={imgClass} />
+            </div>
+            <Field label="Το πρώτο μας ταξίδι μαζί" value={TYPED_CONTENT.trips.first_trip} delay={200} />
+            <Field label="Το αγαπημένο μας μέρος" value={TYPED_CONTENT.trips.favorite_place} delay={800} />
+            <Field label="Μια αστεία στιγμή σε ταξίδι" value={TYPED_CONTENT.trips.funny_moment} delay={1400} />
+            <Field label="Το ταξίδι που θέλουμε να κάνουμε" value={TYPED_CONTENT.trips.dream_trip} delay={2000} />
+          </div>
+        );
+
       case "locked":
         return (
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
@@ -235,7 +260,6 @@ export default function CouplePreviewPage() {
             <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-6 w-full text-left">
               <p className="text-xs text-[#8B5E3C] font-serif mb-2">Περιλαμβάνει:</p>
               <ul className="space-y-1 text-xs text-[#7A6055] font-light">
-                <li>✦ Τα ταξίδια μας</li>
                 <li>✦ Οι δύσκολες μέρες που μας έκαναν πιο δυνατούς</li>
                 <li>✦ Αυτό που αγαπώ σε σένα</li>
                 <li>✦ Τα όνειρά μας</li>
