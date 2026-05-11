@@ -19,6 +19,7 @@ interface Template {
   price: string;
   stripColor: string;
   accentColor: string;
+  previewPath: string;
 }
 
 const TEMPLATES: Template[] = [
@@ -38,6 +39,7 @@ const TEMPLATES: Template[] = [
     price: "29.99€ + ΦΠΑ",
     stripColor: "from-[#C49090] to-[#D4ACAC]",
     accentColor: "#C49090",
+    previewPath: "/preview/first-years",
   },
   {
     id: "me-and-you",
@@ -55,6 +57,7 @@ const TEMPLATES: Template[] = [
     price: "24.99€ + ΦΠΑ",
     stripColor: "from-[#C4A882] to-[#D4BC98]",
     accentColor: "#C4A882",
+    previewPath: "/preview/me-and-you",
   },
   {
     id: "our-wedding",
@@ -71,6 +74,7 @@ const TEMPLATES: Template[] = [
     price: "19.99€ + ΦΠΑ",
     stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
     accentColor: "#D4B8A8",
+    previewPath: "/preview/wedding",
   },
 ];
 
@@ -225,15 +229,21 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
               <div className="flex flex-col gap-2">
                 <Link
                   href={`/checkout?template=${box.id}`}
-                  className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all"
+                  className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                 >
                   ✨ Δημιούργησε το δικό σου Memory Box
                 </Link>
                 <Link
                   href={`/checkout?template=${box.id}&gift=true`}
-                  className="block w-full py-3 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all"
+                  className="block w-full py-3 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                 >
                   🎁 Κάντο Δώρο
+                </Link>
+                <Link
+                  href={box.previewPath}
+                  className="block w-full py-3 bg-white text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center border border-[#C4A882]"
+                >
+                  👁️ Δες ένα δείγμα
                 </Link>
               </div>
             </div>
