@@ -12,7 +12,7 @@ const PAGES = [
   { key: "locked", title: "Κλειδωμένο" },
 ];
 
-const TYPED_CONTENT: Record<string, Record<string, string>> = {
+const TYPED_CONTENT: Record<string, any> = {
   cover: {
     his_name: "Ιάσονας",
     her_name: "Ανδριάνα",
@@ -110,6 +110,8 @@ export default function CouplePreviewPage() {
     </div>
   );
 
+  const imgClass = "w-full h-36 object-contain bg-[#F2E8DE] rounded-xl border-4 border-white shadow-md";
+
   const renderPage = () => {
     const page = PAGES[currentPage];
 
@@ -132,11 +134,7 @@ export default function CouplePreviewPage() {
               <Field label="Όνομα της" value={TYPED_CONTENT.cover.her_name} delay={800} />
               <Field label="Η ιστορία μας ξεκίνησε" value={TYPED_CONTENT.cover.start_date} delay={1300} />
             </div>
-            <img
-              src="/preview/couple/couple-cover.jpeg"
-              alt="Couple Cover"
-              className="w-full h-40 object-cover rounded-2xl border-4 border-white shadow-md"
-            />
+            <img src="/preview/couple/couple-cover.jpeg" alt="Couple Cover" className={imgClass} />
           </div>
         );
 
@@ -148,8 +146,8 @@ export default function CouplePreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Πώς ξεκίνησε όλο αυτό</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/couple/couple-how-met-1.jpeg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
-              <img src="/preview/couple/couple-how-met-2.jpeg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
+              <img src="/preview/couple/couple-how-met-1.jpeg" alt="" className={imgClass} />
+              <img src="/preview/couple/couple-how-met-2.jpeg" alt="" className={imgClass} />
             </div>
             <Field label="Πώς γνωριστήκαμε" value={TYPED_CONTENT.how_we_met.how_met} delay={200} />
             <Field label="Η πρώτη μου εντύπωση για σένα" value={TYPED_CONTENT.how_we_met.first_impression} delay={800} />
@@ -165,7 +163,7 @@ export default function CouplePreviewPage() {
               Preview
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτός 💙</h2>
-            <img src="/preview/couple/couple-him.jpeg" alt="" className="w-full h-40 object-cover rounded-xl border-4 border-white shadow-md mb-4" />
+            <img src="/preview/couple/couple-him.jpeg" alt="" className={`${imgClass} mb-4`} />
             <Field label="Το όνομά του" value={TYPED_CONTENT.him.name} delay={200} />
             <Field label="Αυτό που με τρέλανε σε αυτόν" value={TYPED_CONTENT.him.crazy_about} delay={600} />
             <Field label="Αυτό που με κάνει να γελάω μαζί του" value={TYPED_CONTENT.him.makes_laugh} delay={1200} />
@@ -182,7 +180,7 @@ export default function CouplePreviewPage() {
               Preview
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Αυτή 🌸</h2>
-            <img src="/preview/couple/couple-her.jpeg" alt="" className="w-full h-40 object-cover rounded-xl border-4 border-white shadow-md mb-4" />
+            <img src="/preview/couple/couple-her.jpeg" alt="" className={`${imgClass} mb-4`} />
             <Field label="Το όνομά της" value={TYPED_CONTENT.her.name} delay={200} />
             <Field label="Αυτό που με τρέλανε σε αυτήν" value={TYPED_CONTENT.her.crazy_about} delay={600} />
             <Field label="Αυτό που με κάνει να γελάω μαζί της" value={TYPED_CONTENT.her.makes_laugh} delay={1200} />
@@ -200,8 +198,8 @@ export default function CouplePreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι στιγμές μας</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/couple/couple-moments-1.jpeg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
-              <img src="/preview/couple/couple-moments-2.jpeg" alt="" className="w-full h-32 object-cover rounded-xl border-4 border-white shadow-md" />
+              <img src="/preview/couple/couple-moments-1.jpeg" alt="" className={imgClass} />
+              <img src="/preview/couple/couple-moments-2.jpeg" alt="" className={imgClass} />
             </div>
             <Field label="Η αγαπημένη μας στιγμή μαζί" value={TYPED_CONTENT.moments.favorite_moment} delay={200} />
             <Field label="Μια στιγμή που δεν θα ξεχάσω ποτέ" value={TYPED_CONTENT.moments.unforgettable} delay={800} />
