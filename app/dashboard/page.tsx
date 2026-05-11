@@ -13,21 +13,21 @@ const supabase = createClient(
 const TEMPLATE_INFO: Record<string, any> = {
   "first-years": {
     emoji: "🍼",
-    name: "Τα Πρωτα Χρονια",
+    name: "Τα Πρώτα Χρόνια",
     hasStory: true,
     color: "from-[#C49090] to-[#D4ACAC]",
     bookPath: "memory-box",
   },
   "me-and-you": {
     emoji: "💑",
-    name: "Εγω και Εσυ",
+    name: "Εγώ & Εσύ",
     hasStory: true,
     color: "from-[#C4A882] to-[#D4BC98]",
     bookPath: "memory-box-couple",
   },
   "our-wedding": {
     emoji: "💍",
-    name: "Ο Γαμος Μας",
+    name: "Ο Γάμος Μας",
     hasStory: false,
     color: "from-[#D4B8A8] to-[#E8CCC0]",
     bookPath: "memory-box-wedding",
@@ -73,7 +73,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center">
-        <p className="text-[#B09880] font-light">Φορτωση...</p>
+        <p className="text-[#B09880] font-light">Φόρτωση...</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               className="text-xs font-light tracking-widest uppercase text-[#C47878] hover:text-[#8B5E3C] transition-colors"
             >
-              Αποσυνδεση
+              Αποσύνδεση
             </button>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-serif text-[#8B5E3C] mb-3">
-            Καλως ηρθατε!
+            Καλώς ήρθατε!
           </h1>
           <div className="flex items-center justify-center gap-2 my-4">
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
@@ -118,13 +118,13 @@ export default function DashboardPage() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📦</div>
             <p className="text-[#B09880] font-light mb-6">
-              Δεν εχετε ακομα Memory Box
+              Δεν έχετε ακόμα Memory Box
             </p>
             <Link
               href="/#boxes"
               className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
             >
-              Αγορασε το πρωτο σου Memory Box
+              Αγοράστε το πρώτο σας Memory Box
             </Link>
           </div>
         ) : (
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                             ? "bg-green-100 text-green-600"
                             : "bg-[#F2E8DE] text-[#C4A882]"
                         }`}>
-                          {box.status === "completed" ? "Ολοκληρωμενο" : "Σε εξελιξη"}
+                          {box.status === "completed" ? "Ολοκληρωμένο" : "Σε εξέλιξη"}
                         </span>
                       </div>
                     </div>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                         href={`/${info.bookPath}/${box.id}`}
                         className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                       >
-                        📖 Συμπληρωσε το Memory Box
+                        📖 Συμπλήρωσε το Memory Box
                       </Link>
 
                       {info.hasStory && (
@@ -167,24 +167,23 @@ export default function DashboardPage() {
                             href={`/story-details/${box.id}`}
                             className="block w-full py-3 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                           >
-                            ✨ Στοιχεια Παραμυθιου
+                            ✨ Στοιχεία Παραμυθιού
                           </Link>
                           <Link
                             href={`/my-story/${box.id}`}
                             className="block w-full py-3 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                           >
-                            📚 Το Παραμυθι μου
+                            📚 Το Παραμύθι μου
                           </Link>
                         </>
                       )}
 
-                      {box.status === "completed" && (
-                        <button
-                          className="block w-full py-3 bg-[#C4A882] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
-                        >
-                          ⬇️ Download
-                        </button>
-                      )}
+                      <Link
+                        href={`/download/${box.id}`}
+                        className="block w-full py-3 bg-[#C4A882] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
+                      >
+                        ⬇️ Download PDF
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -196,7 +195,7 @@ export default function DashboardPage() {
 
       <footer className="bg-[#F2E8DE] py-8 px-6 text-center border-t border-[rgba(196,168,130,0.2)] mt-12">
         <p className="text-xs font-light text-[#B09880]">
-          © 2025 My Little Memory Box - Ολα τα δικαιωματα διατηρουνται
+          © 2025 My Little Memory Box - Όλα τα δικαιώματα διατηρούνται
         </p>
       </footer>
     </div>
