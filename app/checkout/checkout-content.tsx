@@ -21,7 +21,7 @@ const templates: Record<string, any> = {
   "me-and-you": {
     emoji: "💑",
     name: "Εγώ και Εσύ",
-    basePrice: "24.99",
+    basePrice: "29.99",
     normalLink: "https://buy.stripe.com/3cI4gzdMn3DY0NL7wQeZ205",
     giftLink: "https://buy.stripe.com/bJe6oHbEf8Yi2VT4kEeZ206",
     features: [
@@ -36,7 +36,7 @@ const templates: Record<string, any> = {
   "our-wedding": {
     emoji: "💍",
     name: "Ο Γάμος Μας",
-    basePrice: "19.99",
+    basePrice: "24.99",
     normalLink: "https://buy.stripe.com/14A6oH23F0rM9kh3gAeZ202",
     giftLink: "https://buy.stripe.com/eVq8wP5fRdeyeEB9EYeZ203",
     features: [
