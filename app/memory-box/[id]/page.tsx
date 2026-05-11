@@ -192,16 +192,16 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
             const file = e.target.files?.[0];
             if (!file) return;
             if (file.size > 5 * 1024 * 1024) {
-              alert("Η φωτογραφία δεν πρέπει να ξεπερνά τα 5MB. Παρακαλώ επιλέξτε μικρότερη φωτογραφία.");
+              alert("Η φωτογραφία δεν πρέπει να ξεπερνά τα 5MB.");
               return;
             }
             uploadPhoto(pageKey, photoKey, file);
           }}
         />
         {photoUrl ? (
-          <img src={photoUrl} alt="Memory" className="w-full h-40 object-cover rounded-xl border-4 border-white shadow-md" />
+          <img src={photoUrl} alt="Memory" className="w-full h-48 object-contain bg-[#F2E8DE] rounded-xl border-4 border-white shadow-md" />
         ) : (
-          <div className="w-full h-40 bg-[#F2E8DE] rounded-xl border-4 border-dashed border-[#C4A882] flex flex-col items-center justify-center hover:bg-[#EDE0D4] transition-all">
+          <div className="w-full h-48 bg-[#F2E8DE] rounded-xl border-4 border-dashed border-[#C4A882] flex flex-col items-center justify-center hover:bg-[#EDE0D4] transition-all">
             <span className="text-3xl mb-2">📸</span>
             <span className="text-xs text-[#B09880] font-light">Πατήστε για φωτογραφία</span>
             <span className="text-xs text-[#C4A882] font-light mt-1">Max 5MB</span>
@@ -319,7 +319,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
                 <F pk="first_achievements" fk="first_crawl" ph="..." ml />
               </div>
               <div>
-                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που σηκώθηκες όρθιο:</p>
+                <p className="text-xs text-[#8B5E3C] mb-1">Η πρώτη φορά που σηκώθηκες όρθια:</p>
                 <F pk="first_achievements" fk="first_stand" ph="..." ml />
               </div>
               <div>
@@ -442,7 +442,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα γενέθλιά σου 🎉</h2>
             <div className="space-y-4">
               <PhotoPlaceholder pageKey="birthdays" photoKey="photo1" />
-              {[1, 2, 3, 4, 5].map((year) => (
+              {[1, 2, 3].map((year) => (
                 <div key={year} className="bg-[#F9F2EC] rounded-2xl p-3">
                   <p className="text-sm font-serif text-[#8B5E3C] mb-2">{year} ετών 🎂</p>
                   <div className="space-y-2">
@@ -511,7 +511,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ένα γράμμα για σένα...</h2>
             <PhotoPlaceholder pageKey="letter" photoKey="photo1" />
             <div className="mt-4">
-              <F pk="letter" fk="letter" ph="Αγαπητέ/ή..." ml />
+              <F pk="letter" fk="letter" ph="Αγάπη μου..." ml />
             </div>
           </div>
         );
