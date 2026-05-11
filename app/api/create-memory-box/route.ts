@@ -15,10 +15,14 @@ const supabase = createClient(
 );
 
 const PRICE_TO_TEMPLATE: Record<string, string> = {
+  // Live prices
   "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
   "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
   "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
+  // Test prices
   "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
+  "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
+  "price_1TVnMzI6cMM6olNfkwq1wvwO": "our-wedding",
 };
 
 export async function POST(request: NextRequest) {
