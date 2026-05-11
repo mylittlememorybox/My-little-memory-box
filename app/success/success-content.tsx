@@ -3,39 +3,35 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "normal";
+  const sessionId = searchParams.get("session_id");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [memoryBoxId, setMemoryBoxId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (type === "gift") {
-      loadLatestMemoryBox();
+    if (sessionId) {
+      createMemoryBox();
     }
-  }, [type]);
+  }, [sessionId]);
 
-  const loadLatestMemoryBox = async () => {
-    const { data } = await supabase
-      .from("memory_boxes")
-      .select("id")
-      .is("gift_token", null)
-      .is("user_id", null)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (data) {
-      setMemoryBoxId(data.id);
+  const createMemoryBox = async () => {
+    try {
+      const response = await fetch("/api/create-memory-box", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await response.json();
+      if (data.memoryBoxId) {
+        setMemoryBoxId(data.memoryBoxId);
+      }
+    } catch (error) {
+      console.error("Error creating memory box:", error);
     }
   };
 
@@ -114,30 +110,33 @@ export default function SuccessContent() {
             {!sent ? (
               <>
                 <p className="text-[#B09880] font-light mb-10 leading-relaxed">
-                  Βάλτε το email σας για να λάβετε το QR code του δώρου.
+                  Βάλτε το email του παραλήπτη για να λάβει το QR code του δώρου.
                 </p>
                 <div className="bg-white rounded-3xl p-8 shadow-lg">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Το email σας"
+                    placeholder="Email παραλήπτη"
                     className="w-full px-5 py-4 rounded-full border border-[#C4A882] text-[#7A6055] font-light mb-4 focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]"
                   />
                   <button
                     onClick={handleSendGift}
-                    disabled={loading}
+                    disabled={loading || !memoryBoxId}
                     className="w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                   >
                     {loading ? "Αποστολή..." : "🎁 Αποστολή QR code"}
                   </button>
+                  {!memoryBoxId && (
+                    <p className="text-xs text-[#B09880] mt-3">Φόρτωση...</p>
+                  )}
                 </div>
               </>
             ) : (
               <>
                 <div className="text-6xl mb-6">✅</div>
                 <p className="text-[#B09880] font-light mb-6 leading-relaxed">
-                  Σας στείλαμε το QR code στο email σας! Μπορείτε να το προωθήσετε στον αγαπημένο σας.
+                  Στείλαμε το QR code στον παραλήπτη! Μόλις το σκανάρει θα μπορεί να ξεκινήσει το Memory Box του.
                 </p>
                 <Link
                   href="/"
