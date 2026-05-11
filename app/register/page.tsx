@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -77,13 +77,14 @@ function RegisterContent() {
       }
 
       if (giftToken && authData.user) {
-        await supabase
-          .from("memory_boxes")
-          .update({ user_id: authData.user.id })
-          .eq("gift_token", giftToken);
-
-        router.push("/dashboard");
-        return;
+        await fetch("/api/claim-gift", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            giftToken,
+            userId: authData.user.id,
+          }),
+        });
       }
 
       router.push("/dashboard");
