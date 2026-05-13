@@ -76,6 +76,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
           userEmail,
           templateId,
           formData,
+          memoryBoxId: params.id, // ← ΝΕΟ
         }),
       });
       setSaved(true);
