@@ -54,8 +54,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
   };
 
   const saveField = async (fieldKey: string, value: string) => {
-    const newData = { ...formData, [fieldKey]: value };
-    setFormData(newData);
+    setFormData(prev => ({ ...prev, [fieldKey]: value }));
 
     await supabase.from("memory_box_data").upsert({
       memory_box_id: params.id,
@@ -76,7 +75,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
           userEmail,
           templateId,
           formData,
-          memoryBoxId: params.id, // ← ΝΕΟ
+          memoryBoxId: params.id,
         }),
       });
       setSaved(true);
@@ -95,7 +94,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
     dropdown?: boolean;
     options?: string[];
   }) => {
-    const value = formData[fieldKey] || "";
+    const [localValue, setLocalValue] = useState(formData[fieldKey] || "");
     const baseClass = "w-full px-4 py-3 rounded-2xl border border-[#C4A882] text-[#7A6055] font-light text-sm focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]";
 
     if (dropdown) {
@@ -103,8 +102,11 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
         <div className="mb-4">
           <p className="text-xs text-[#8B5E3C] font-light mb-1">{label}</p>
           <select
-            value={value}
-            onChange={(e) => saveField(fieldKey, e.target.value)}
+            value={localValue}
+            onChange={(e) => {
+              setLocalValue(e.target.value);
+              saveField(fieldKey, e.target.value);
+            }}
             className={baseClass}
           >
             <option value="">Επιλεξτε...</option>
@@ -121,8 +123,9 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
         <div className="mb-4">
           <p className="text-xs text-[#8B5E3C] font-light mb-1">{label}</p>
           <textarea
-            value={value}
-            onChange={(e) => saveField(fieldKey, e.target.value)}
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={() => saveField(fieldKey, localValue)}
             rows={3}
             className={baseClass + " resize-none"}
             placeholder="Γραψτε εδω..."
@@ -136,8 +139,9 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
         <p className="text-xs text-[#8B5E3C] font-light mb-1">{label}</p>
         <input
           type="text"
-          value={value}
-          onChange={(e) => saveField(fieldKey, e.target.value)}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={() => saveField(fieldKey, localValue)}
           className={baseClass}
           placeholder="Γραψτε εδω..."
         />
