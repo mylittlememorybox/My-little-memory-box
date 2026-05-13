@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userEmail, templateId, formData } = await request.json();
+    const { userEmail, templateId, formData, memoryBoxId } = await request.json();
 
     const transporter = nodemailer.createTransport({
       host: "smtp.zoho.eu",
@@ -39,31 +39,38 @@ export async function POST(request: NextRequest) {
       <tr><td><strong>Μηνυμα αγαπης:</strong></td><td>${formData.love_message || "-"}</td></tr>
     `;
 
+    // URL για αποστολή στον πελάτη (1 κλικ)
+    const sendToClientUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/send-ebook-to-client?memoryBoxId=${memoryBoxId}&clientEmail=${userEmail}`;
+
     await transporter.sendMail({
       from: `"My Little Memory Box" <${process.env.ZOHO_EMAIL}>`,
       to: process.env.ZOHO_EMAIL,
-      subject: `Νεο Αιτημα Παραμυθιου - ${isFirstYears ? "Τα Πρωτα Χρονια" : "Εγω & Εσυ"}`,
+      subject: `📦 Νεο Αιτημα - ${isFirstYears ? formData.child_name : formData.his_name}`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background-color: #F9F2EC; padding: 40px; border-radius: 20px;">
-          <h1 style="color: #8B5E3C; text-align: center; margin-bottom: 30px;">
-            Νεο Αιτημα Παραμυθιου
-          </h1>
+          <h1 style="color: #8B5E3C; text-align: center;">Νεο Αιτημα Παραμυθιου</h1>
 
           <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
             <p style="color: #8B5E3C;"><strong>Email Χρηστη:</strong> ${userEmail}</p>
-            <p style="color: #8B5E3C;"><strong>Τυπος Memory Box:</strong> ${isFirstYears ? "Τα Πρωτα Χρονια 🍼" : "Εγω & Εσυ 💑"}</p>
+            <p style="color: #8B5E3C;"><strong>Τυπος:</strong> ${isFirstYears ? "Τα Πρωτα Χρονια 🍼" : "Εγω & Εσυ 💑"}</p>
           </div>
 
-          <div style="background: white; border-radius: 15px; padding: 20px;">
-            <h2 style="color: #8B5E3C; margin-bottom: 15px;">Στοιχεια Παραμυθιου:</h2>
+          <div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
+            <h2 style="color: #8B5E3C;">Στοιχεια:</h2>
             <table style="width: 100%; border-collapse: collapse; color: #7A6055;">
               ${fieldsHtml}
             </table>
           </div>
 
-          <p style="text-align: center; color: #B09880; font-size: 12px; margin-top: 20px;">
-            My Little Memory Box · info@mylittlememorybox.gr
-          </p>
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="${sendToClientUrl}"
+               style="background: #8B5E3C; color: white; padding: 16px 40px; border-radius: 999px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;">
+              ✅ Στειλε το e-book στον πελατη
+            </a>
+            <p style="color: #B09880; font-size: 12px; margin-top: 10px;">
+              Μολις ετοιμασεις το e-book, πατησε το κουμπι παραπανω
+            </p>
+          </div>
         </div>
       `,
     });
