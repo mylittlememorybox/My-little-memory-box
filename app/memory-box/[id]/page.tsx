@@ -36,6 +36,7 @@ interface TextFieldProps {
 function TextField({ pageKey, fieldKey, placeholder, multiline = false, value, onChange }: TextFieldProps) {
   const [localValue, setLocalValue] = useState(value);
   const timerRef = useRef<any>(null);
+  const inputRef = useRef<any>(null);
 
   useEffect(() => {
     setLocalValue(value);
@@ -46,7 +47,7 @@ function TextField({ pageKey, fieldKey, placeholder, multiline = false, value, o
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       onChange(pageKey, fieldKey, newValue);
-    }, 1000);
+    }, 1500);
   };
 
   const baseClass = "w-full bg-transparent border-b-2 border-dotted border-[#C4A882] text-[#5C3820] font-light text-sm focus:outline-none focus:border-[#8B5E3C] placeholder-[#C4A882] py-1 resize-none";
@@ -54,22 +55,26 @@ function TextField({ pageKey, fieldKey, placeholder, multiline = false, value, o
   if (multiline) {
     return (
       <textarea
+        ref={inputRef}
         value={localValue}
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         rows={3}
         className={baseClass}
+        onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
       />
     );
   }
 
   return (
     <input
+      ref={inputRef}
       type="text"
       value={localValue}
       onChange={(e) => handleChange(e.target.value)}
       placeholder={placeholder}
       className={baseClass}
+      onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
     />
   );
 }
@@ -132,7 +137,10 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   const uploadPhoto = async (pageKey: string, photoKey: string, file: File) => {
-    const fileName = `${params.id}/${pageKey}/${photoKey}_${Date.now()}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const fileName = `${user.id}/${params.id}/${pageKey}/${photoKey}_${Date.now()}`;
     const { data: uploadData, error } = await supabase.storage
       .from("memory-box-photos")
       .upload(fileName, file, { upsert: true });
@@ -534,13 +542,16 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
             <img src="/logo.png" alt="Logo" className="w-16 h-auto hover:opacity-80 transition-opacity" />
           </button>
         </div>
+
         <div className="p-4" style={{ minHeight: "520px" }}>
           {renderPage()}
         </div>
+
         <div className="text-center py-2 text-xs text-[#B09880]">
           {currentPage + 1} / {PAGES.length}
         </div>
       </div>
+
       <div className="flex items-center gap-8 mt-6">
         <button
           onClick={() => goToPage("prev")}
@@ -560,6 +571,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
           →
         </button>
       </div>
+
       <Link
         href="/dashboard"
         className="mt-6 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
