@@ -1,5 +1,4 @@
-"use client";
-
+“use client”;
 
 import { useState, useEffect, useRef, useCallback } from “react”;
 import Link from “next/link”;
@@ -138,7 +137,6 @@ await supabase.from("memory_box_data").upsert({
 
 }, [params.id]);
 
-// ✅ ΔΙΟΡΘΩΣΗ: Αφαιρέθηκε ο έλεγχος user - επιτρέπει upload χωρίς login
 const uploadPhoto = async (pageKey: string, photoKey: string, file: File) => {
 const fileName = `${params.id}/${pageKey}/${photoKey}_${Date.now()}`;
 const { data: uploadData, error } = await supabase.storage
