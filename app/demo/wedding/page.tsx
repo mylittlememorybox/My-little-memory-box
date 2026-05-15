@@ -17,7 +17,7 @@ const PAGES = [
   { key: "letter", title: "Ένα γράμμα για σένα" },
 ];
 
-function TextField({ placeholder, multiline = false }: { placeholder: string; multiline?: boolean }) {
+function TextField({ id, placeholder, multiline = false }: { id: string; placeholder: string; multiline?: boolean }) {
   const [value, setValue] = useState("");
   const inputRef = useRef<any>(null);
 
@@ -50,7 +50,7 @@ function TextField({ placeholder, multiline = false }: { placeholder: string; mu
   );
 }
 
-function PhotoPlaceholder() {
+function PhotoPlaceholder({ id }: { id: string }) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   return (
@@ -78,9 +78,11 @@ function PhotoPlaceholder() {
   );
 }
 
-const F = ({ ph, ml = false }: { ph: string; ml?: boolean }) => (
-  <TextField placeholder={ph} multiline={ml} />
+const F = ({ id, ph, ml = false }: { id: string; ph: string; ml?: boolean }) => (
+  <TextField key={id} id={id} placeholder={ph} multiline={ml} />
 );
+
+const P = ({ id }: { id: string }) => <PhotoPlaceholder key={id} id={id} />;
 
 export default function DemoWeddingPage() {
   const [currentPage, setCurrentPage] = useState(0);
@@ -118,12 +120,12 @@ export default function DemoWeddingPage() {
               <div className="w-12 h-px bg-[#C4A882] opacity-40" />
             </div>
             <div className="w-full max-w-xs space-y-3 mb-6">
-              <F ph="Όνομα γαμπρού..." />
-              <F ph="Όνομα νύφης..." />
-              <F ph="Ημερομηνία γάμου..." />
-              <F ph="Τοποθεσία γάμου..." />
+              <F id="cover_groom" ph="Όνομα γαμπρού..." />
+              <F id="cover_bride" ph="Όνομα νύφης..." />
+              <F id="cover_date" ph="Ημερομηνία γάμου..." />
+              <F id="cover_location" ph="Τοποθεσία γάμου..." />
             </div>
-            <PhotoPlaceholder />
+            <P id="cover_photo" />
           </div>
         );
 
@@ -132,22 +134,22 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η πρόταση γάμου 💍</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="proposal_photo1" />
+              <P id="proposal_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { label: "Πού έγινε η πρόταση", ml: false },
-                { label: "Πώς το σχεδίασα/σχεδίασες", ml: true },
-                { label: "Τι φορούσαμε εκείνη τη στιγμή", ml: false },
-                { label: "Τα λόγια που είπα/είπες", ml: true },
-                { label: "Η πρώτη μου αντίδραση", ml: true },
-                { label: "Αυτό που ένιωσα εκείνη τη στιγμή", ml: true },
-                { label: "Ο πρώτος που το μοιραστήκαμε", ml: false },
-              ].map((item, i) => (
-                <div key={i}>
+                { id: "proposal_where", label: "Πού έγινε η πρόταση", ml: false },
+                { id: "proposal_planned", label: "Πώς το σχεδίασα/σχεδίασες", ml: true },
+                { id: "proposal_wearing", label: "Τι φορούσαμε εκείνη τη στιγμή", ml: false },
+                { id: "proposal_words", label: "Τα λόγια που είπα/είπες", ml: true },
+                { id: "proposal_reaction", label: "Η πρώτη μου αντίδραση", ml: true },
+                { id: "proposal_feeling", label: "Αυτό που ένιωσα εκείνη τη στιγμή", ml: true },
+                { id: "proposal_told", label: "Ο πρώτος που το μοιραστήκαμε", ml: false },
+              ].map((item) => (
+                <div key={item.id}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <F ph="..." ml={item.ml} />
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -159,20 +161,20 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η μέρα πριν</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="day_photo1" />
+              <P id="day_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                "Τι ένιωθα το βράδυ πριν",
-                "Τι σκεφτόμουν ξαπλωμένος/η",
-                "Το τελευταίο μήνυμα που έστειλα σε σένα",
-                "Πώς κοιμήθηκα (ή δεν κοιμήθηκα 😄)",
-                "Το πρωινό της ημέρας του γάμου",
-              ].map((label, i) => (
-                <div key={i}>
-                  <p className="text-xs text-[#8B5E3C] mb-1">{label}:</p>
-                  <F ph="..." ml />
+                { id: "day_evening", label: "Τι ένιωθα το βράδυ πριν", ml: true },
+                { id: "day_thoughts", label: "Τι σκεφτόμουν ξαπλωμένος/η", ml: true },
+                { id: "day_message", label: "Το τελευταίο μήνυμα που έστειλα σε σένα", ml: true },
+                { id: "day_sleep", label: "Πώς κοιμήθηκα (ή δεν κοιμήθηκα 😄)", ml: true },
+                { id: "day_morning", label: "Το πρωινό της ημέρας του γάμου", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -184,20 +186,20 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η στιγμή που σε είδα</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="saw_photo1" />
+              <P id="saw_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { label: "Η πρώτη μου σκέψη όταν σε είδα", ml: true },
-                { label: "Πώς ήσουν ντυμένος/η", ml: true },
-                { label: "Αυτό που παρατήρησα πρώτα", ml: false },
-                { label: "Τι ένιωσα εκείνη τη στιγμή", ml: true },
-                { label: "Αν μπορούσα να σταματήσω τον χρόνο εκείνη τη στιγμή", ml: true },
-              ].map((item, i) => (
-                <div key={i}>
+                { id: "saw_thought", label: "Η πρώτη μου σκέψη όταν σε είδα", ml: true },
+                { id: "saw_outfit", label: "Πώς ήσουν ντυμένος/η", ml: true },
+                { id: "saw_noticed", label: "Αυτό που παρατήρησα πρώτα", ml: false },
+                { id: "saw_feeling", label: "Τι ένιωσα εκείνη τη στιγμή", ml: true },
+                { id: "saw_freeze", label: "Αν μπορούσα να σταματήσω τον χρόνο εκείνη τη στιγμή", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <F ph="..." ml={item.ml} />
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -209,20 +211,20 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η τελετή</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="cer_photo1" />
+              <P id="cer_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                "Η στιγμή που έδωσα τα χέρια μου",
-                "Τα λόγια που είπαμε",
-                "Η στιγμή που φόρεσα/φόρεσες το δαχτυλίδι",
-                "Αυτό που σκέφτηκα όταν είπα ναι",
-                "Μια λεπτομέρεια που θυμάμαι έντονα",
-              ].map((label, i) => (
-                <div key={i}>
-                  <p className="text-xs text-[#8B5E3C] mb-1">{label}:</p>
-                  <F ph="..." ml />
+                { id: "cer_hands", label: "Η στιγμή που έδωσα τα χέρια μου", ml: true },
+                { id: "cer_words", label: "Τα λόγια που είπαμε", ml: true },
+                { id: "cer_ring", label: "Η στιγμή που φόρεσα/φόρεσες το δαχτυλίδι", ml: true },
+                { id: "cer_yes", label: "Αυτό που σκέφτηκα όταν είπα ναι", ml: true },
+                { id: "cer_detail", label: "Μια λεπτομέρεια που θυμάμαι έντονα", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -234,20 +236,20 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Οι άνθρωποι της μέρας μας</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="ppl_photo1" />
+              <P id="ppl_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                { label: "Αυτοί που ήταν εκεί για μας", ml: true },
-                { label: "Κάποιος που με συγκίνησε", ml: true },
-                { label: "Ένα πρόσωπο που κοίταξα και χαμογέλασα", ml: false },
-                { label: "Κάποιος που έλειψε αλλά ήταν στην καρδιά μας", ml: true },
-                { label: "Κουμπάρος/α", ml: false },
-              ].map((item, i) => (
-                <div key={i}>
+                { id: "ppl_there", label: "Αυτοί που ήταν εκεί για μας", ml: true },
+                { id: "ppl_moved", label: "Κάποιος που με συγκίνησε", ml: true },
+                { id: "ppl_smiled", label: "Ένα πρόσωπο που κοίταξα και χαμογέλασα", ml: false },
+                { id: "ppl_missed", label: "Κάποιος που έλειψε αλλά ήταν στην καρδιά μας", ml: true },
+                { id: "ppl_godparents", label: "Κουμπάρος/α", ml: false },
+              ].map((item) => (
+                <div key={item.id}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <F ph="..." ml={item.ml} />
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -258,18 +260,18 @@ export default function DemoWeddingPage() {
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα συναισθήματα της μέρας</h2>
-            <PhotoPlaceholder />
+            <P id="feel_photo1" />
             <div className="space-y-4 mt-4">
               {[
-                "Η κυρίαρχη αίσθηση της ημέρας",
-                "Η στιγμή που δάκρυσα",
-                "Η στιγμή που γέλασα",
-                "Κάτι που δεν περίμενα να νιώσω",
-                "Αυτό που ήθελα να κρατήσω για πάντα",
-              ].map((label, i) => (
-                <div key={i}>
-                  <p className="text-xs text-[#8B5E3C] mb-1">{label}:</p>
-                  <F ph="..." ml />
+                { id: "feel_main", label: "Η κυρίαρχη αίσθηση της ημέρας", ml: true },
+                { id: "feel_cried", label: "Η στιγμή που δάκρυσα", ml: true },
+                { id: "feel_laughed", label: "Η στιγμή που γέλασα", ml: true },
+                { id: "feel_unexpected", label: "Κάτι που δεν περίμενα να νιώσω", ml: true },
+                { id: "feel_keep", label: "Αυτό που ήθελα να κρατήσω για πάντα", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -281,20 +283,20 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Στιγμές που δεν θέλουμε να ξεχάσουμε</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="mom_photo1" />
+              <P id="mom_photo2" />
             </div>
             <div className="space-y-4">
               {[
-                "Η πιο αστεία στιγμή της ημέρας",
-                "Κάτι που πήγε στραβά αλλά έγινε ανάμνηση",
-                "Μια μικρή λεπτομέρεια που με συγκίνησε",
-                "Η στιγμή που σκέφτηκα αυτό θέλω να θυμάμαι",
-                "Μια έκπληξη της ημέρας",
-              ].map((label, i) => (
-                <div key={i}>
-                  <p className="text-xs text-[#8B5E3C] mb-1">{label}:</p>
-                  <F ph="..." ml />
+                { id: "mom_funny", label: "Η πιο αστεία στιγμή της ημέρας", ml: true },
+                { id: "mom_wrong", label: "Κάτι που πήγε στραβά αλλά έγινε ανάμνηση", ml: true },
+                { id: "mom_detail", label: "Μια μικρή λεπτομέρεια που με συγκίνησε", ml: true },
+                { id: "mom_remember", label: "Η στιγμή που σκέφτηκα αυτό θέλω να θυμάμαι", ml: true },
+                { id: "mom_surprise", label: "Μια έκπληξη της ημέρας", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -306,23 +308,23 @@ export default function DemoWeddingPage() {
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Το γλέντι 🎉</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <PhotoPlaceholder />
-              <PhotoPlaceholder />
+              <P id="party_photo1" />
+              <P id="party_photo2" />
             </div>
             <div className="space-y-4">
               <div className="bg-[#F2E8DE] rounded-2xl p-4">
                 <p className="text-xs text-[#8B5E3C] mb-3 font-serif">🎵 Το τραγούδι του πρώτου μας χορού</p>
-                <F ph="Τίτλος - Καλλιτέχνης..." />
+                <F id="party_song" ph="Τίτλος - Καλλιτέχνης..." />
               </div>
               {[
-                { label: "Πώς ήταν η πίστα", ml: true },
-                { label: "Κάποιος που χόρεψε και δεν το περιμέναμε 😄", ml: false },
-                { label: "Η στιγμή που χορέψαμε μαζί", ml: true },
-                { label: "Το αγαπημένο μου στιγμιότυπο από το γλέντι", ml: true },
-              ].map((item, i) => (
-                <div key={i}>
+                { id: "party_floor", label: "Πώς ήταν η πίστα", ml: true },
+                { id: "party_dancer", label: "Κάποιος που χόρεψε και δεν το περιμέναμε 😄", ml: false },
+                { id: "party_danced", label: "Η στιγμή που χορέψαμε μαζί", ml: true },
+                { id: "party_fav", label: "Το αγαπημένο μου στιγμιότυπο από το γλέντι", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <F ph="..." ml={item.ml} />
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -333,18 +335,18 @@ export default function DemoWeddingPage() {
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η νύχτα μας 🌙</h2>
-            <PhotoPlaceholder />
+            <P id="night_photo1" />
             <div className="space-y-4 mt-4">
               {[
-                { label: "Πότε φύγαμε", ml: false },
-                { label: "Η πρώτη στιγμή που μείναμε μόνοι", ml: true },
-                { label: "Τι είπαμε ο ένας στον άλλον", ml: true },
-                { label: "Πώς τελείωσε αυτή η μέρα", ml: true },
-                { label: "Τι ονειρεύτηκα εκείνη τη νύχτα", ml: true },
-              ].map((item, i) => (
-                <div key={i}>
+                { id: "night_left", label: "Πότε φύγαμε", ml: false },
+                { id: "night_alone", label: "Η πρώτη στιγμή που μείναμε μόνοι", ml: true },
+                { id: "night_said", label: "Τι είπαμε ο ένας στον άλλον", ml: true },
+                { id: "night_ended", label: "Πώς τελείωσε αυτή η μέρα", ml: true },
+                { id: "night_dreamed", label: "Τι ονειρεύτηκα εκείνη τη νύχτα", ml: true },
+              ].map((item) => (
+                <div key={item.id}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
-                  <F ph="..." ml={item.ml} />
+                  <F id={item.id} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
@@ -355,9 +357,9 @@ export default function DemoWeddingPage() {
         return (
           <div className="h-full overflow-y-auto px-6 py-4">
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Ένα γράμμα για σένα...</h2>
-            <PhotoPlaceholder />
+            <P id="letter_photo1" />
             <div className="mt-4">
-              <F ph="Αγάπη μου..." ml />
+              <F id="letter_text" ph="Αγάπη μου..." ml />
             </div>
           </div>
         );
