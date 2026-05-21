@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.mylittlememorybox.gr"
+        }
+      ],
+      "destination": "https://mylittlememorybox.gr/:path*",
+      "permanent": true
+    }
+  ]
+}
