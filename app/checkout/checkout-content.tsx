@@ -117,22 +117,24 @@ export default function CheckoutContent() {
               <div className="text-5xl font-serif font-normal text-[#5C3820]">
                 {template.basePrice}€
               </div>
-              <p className="text-xs text-[#B09880] mt-2">+ ΦΠΑ</p>
+              <p className="text-xs text-[#B09880] mt-2">Συμπεριλαμβάνεται ΦΠΑ</p>
             </div>
 
             <div className="space-y-3">
               <a
-                href={template.normalLink}
+                href={isGift ? template.giftLink : template.normalLink}
                 className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
               >
-                💳 {template.basePrice}€ + ΦΠΑ - Προχωρήστε στην πληρωμή
+                💳 {template.basePrice}€ — Προχωρήστε στην πληρωμή
               </a>
-              <a
-                href={template.giftLink}
-                className="block w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
-              >
-                🎁 Κάντο Δώρο
-              </a>
+              {!isGift && (
+                <a
+                  href={template.giftLink}
+                  className="block w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
+                >
+                  🎁 Κάντο Δώρο
+                </a>
+              )}
             </div>
           </div>
         </div>
