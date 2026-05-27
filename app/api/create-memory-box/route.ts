@@ -16,9 +16,11 @@ const supabase = createClient(
 );
 
 const PRICE_TO_TEMPLATE: Record<string, string> = {
+  // Live prices
   "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
   "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
   "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
+  // Test prices
   "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
   "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
   "price_1TVnMzI6cMM6olNfkwq1wvwO": "our-wedding",
@@ -34,14 +36,18 @@ export async function POST(request: NextRequest) {
         { error: "Session ID required" },
         {
           status: 400,
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate",
-          }
+          headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
         }
       );
     }
 
-    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+    // Αυτόματη επιλογή test ή live key
+    const isTest = sessionId.startsWith("cs_test_");
+    const stripeKey = isTest
+      ? process.env.STRIPE_SECRET_KEY_TEST
+      : process.env.STRIPE_SECRET_KEY;
+
+    const stripe = require("stripe")(stripeKey);
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
@@ -58,6 +64,7 @@ export async function POST(request: NextRequest) {
     const priceId = session.line_items?.data[0]?.price?.id;
     const templateId = PRICE_TO_TEMPLATE[priceId] || "first-years";
 
+    // Έλεγχος αν υπάρχει ήδη
     const { data: existingBox } = await supabase
       .from("memory_boxes")
       .select("id")
@@ -68,16 +75,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: true, memoryBoxId: existingBox.id },
         {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate",
-          }
+          headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
         }
       );
     }
 
+    // Βρες τον χρήστη
     const { data: { users } } = await supabase.auth.admin.listUsers();
     const user = users?.find((u: any) => u.email === customerEmail);
 
+    // Δημιούργησε το memory box
     const { data: newBox, error } = await supabase
       .from("memory_boxes")
       .insert({
@@ -102,9 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { success: true, memoryBoxId: newBox?.id },
       {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate",
-        }
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
       }
     );
   } catch (error) {
