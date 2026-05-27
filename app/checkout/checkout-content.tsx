@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-const IS_TEST = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test");
+const IS_TEST = process.env.NEXT_PUBLIC_STRIPE_MODE === "test";
 
 const templates: Record<string, any> = {
   "first-years": {
