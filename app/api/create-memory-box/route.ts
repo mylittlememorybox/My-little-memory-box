@@ -20,6 +20,7 @@ const PRICE_TO_TEMPLATE: Record<string, string> = {
   "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
   "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
   "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
+  "price_1TcS0TI6cMM6olNfBCI2S324": "travel",
   // Test prices
   "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
   "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
@@ -41,7 +42,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Αυτόματη επιλογή test ή live key
     const isTest = sessionId.startsWith("cs_test_");
     const stripeKey = isTest
       ? process.env.STRIPE_SECRET_KEY_TEST
@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
     const priceId = session.line_items?.data[0]?.price?.id;
     const templateId = PRICE_TO_TEMPLATE[priceId] || "first-years";
 
-    // Έλεγχος αν υπάρχει ήδη
     const { data: existingBox } = await supabase
       .from("memory_boxes")
       .select("id")
@@ -80,11 +79,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Βρες τον χρήστη
     const { data: { users } } = await supabase.auth.admin.listUsers();
     const user = users?.find((u: any) => u.email === customerEmail);
 
-    // Δημιούργησε το memory box
     const { data: newBox, error } = await supabase
       .from("memory_boxes")
       .insert({
