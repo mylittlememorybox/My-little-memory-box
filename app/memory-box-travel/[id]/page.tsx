@@ -13,8 +13,15 @@ const STAMP_COLORS = [
   "#8B5E3C", "#2C5F8A", "#2C8A5F", "#8A2C5F", "#5F2C8A", "#8A5F2C"
 ];
 
-cconst PassportStamp = ({ country, city, date, entryType = "ENTRY", rotation = 0, opacity = 1, color = "#8B5E3C" }: { country: string; city: string; date: string; entryType?: string; rotation?: number; opacity?: number; color?: string }) => (
-
+const PassportStamp = ({ country, city, date, entryType = "ENTRY", rotation = 0, opacity = 1, color = "#8B5E3C" }: {
+  country: string;
+  city: string;
+  date: string;
+  entryType?: string;
+  rotation?: number;
+  opacity?: number;
+  color?: string;
+}) => (
   <div style={{ transform: `rotate(${rotation}deg)`, opacity, display: "inline-block" }}>
     <svg width="120" height="120" viewBox="0 0 160 160">
       <circle cx="80" cy="80" r="72" fill="none" stroke={color} strokeWidth="3" strokeDasharray="4 2" />
@@ -252,11 +259,8 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(196,168,130,0.08) 28px, rgba(196,168,130,0.08) 29px)`,
         }}
       >
-        {/* Stamp */}
         <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-serif text-[#2C1810]">
-            ✈ Ταξίδι #{tripNum}
-          </h2>
+          <h2 className="text-xl font-serif text-[#2C1810]">✈ Ταξίδι #{tripNum}</h2>
           <PassportStamp
             country={country}
             city={city}
@@ -268,7 +272,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           />
         </div>
 
-        {/* Basic info */}
         <div className="space-y-3 mb-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -296,13 +299,11 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           </div>
         </div>
 
-        {/* Photos */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <PhotoPlaceholder pageKey={pk} photoKey="photo1" />
           <PhotoPlaceholder pageKey={pk} photoKey="photo2" />
         </div>
 
-        {/* Accommodation */}
         <div className="bg-[#F5ECD7] rounded-xl p-3 mb-3">
           <p className="text-xs text-[#8B5E3C] mb-2 uppercase tracking-wider">🏨 Διαμονή</p>
           <div className="space-y-2">
@@ -318,7 +319,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           </div>
         </div>
 
-        {/* Food */}
         <div className="bg-[#F5ECD7] rounded-xl p-3 mb-3">
           <p className="text-xs text-[#8B5E3C] mb-2 uppercase tracking-wider">🍽️ Γεύσεις</p>
           <div className="space-y-2">
@@ -334,7 +334,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           </div>
         </div>
 
-        {/* Moments */}
         <div className="space-y-3 mb-4">
           {[
             { fk: "best_moment", label: "⭐ Η καλύτερη στιγμή" },
@@ -350,13 +349,11 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           ))}
         </div>
 
-        {/* More photos */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <PhotoPlaceholder pageKey={pk} photoKey="photo3" />
           <PhotoPlaceholder pageKey={pk} photoKey="photo4" />
         </div>
 
-        {/* Reflection */}
         <div className="bg-[#F5ECD7] rounded-xl p-3 mb-3">
           <p className="text-xs text-[#8B5E3C] mb-2 uppercase tracking-wider">💭 Σκέψεις</p>
           <div className="space-y-2">
@@ -391,7 +388,8 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
             borderRadius: "8px",
           }}
         >
-          <img src="/logo.png" alt="Logo" className="w-32 h-auto mb-4 drop-shadow-lg" style={{ filter: "brightness(0) invert(1) opacity(0.9)" }} />
+          <img src="/logo.png" alt="Logo" className="w-32 h-auto mb-4 drop-shadow-lg"
+            style={{ filter: "brightness(0) invert(1) opacity(0.9)" }} />
           <div className="text-[#C4A882] text-xs tracking-widest uppercase mb-2">✈ My Little Memory Box</div>
           <h1 className="text-3xl font-serif text-[#F5ECD7] mb-2">Travel Memory Box</h1>
           <div className="flex items-center gap-2 mb-6">
@@ -421,8 +419,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
               />
             </div>
           </div>
-
-          {/* Mini stamps preview */}
           <div className="flex gap-2 flex-wrap justify-center opacity-60">
             {["GR", "FR", "IT", "ES", "JP"].map((code, i) => (
               <div key={code} style={{ transform: `rotate(${(i % 3 - 1) * 8}deg)` }}>
@@ -483,7 +479,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
       );
     }
 
-    // Trip pages
     const tripMatch = page.key.match(/^trip_(\d+)$/);
     if (tripMatch) {
       return renderTripPage(parseInt(tripMatch[1]));
@@ -505,16 +500,13 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
           backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(196,168,130,0.05) 28px, rgba(196,168,130,0.05) 29px)`,
         }}
       >
-        {/* Header */}
         <div className="sticky top-0 z-10 pt-4 pb-2 flex justify-between items-center px-4 border-b border-[rgba(139,94,60,0.2)]"
           style={{ background: "#F5ECD7" }}
         >
           <button onClick={() => setCurrentPage(0)}>
             <img src="/logo.png" alt="Logo" className="w-12 h-auto hover:opacity-80 transition-opacity" />
           </button>
-          <p className="text-xs text-[#8B5E3C] uppercase tracking-widest font-light">
-            ✈ Travel Memory Box
-          </p>
+          <p className="text-xs text-[#8B5E3C] uppercase tracking-widest font-light">✈ Travel Memory Box</p>
           <div className="w-12" />
         </div>
 
@@ -527,7 +519,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center gap-8 mt-6">
         <button
           onClick={() => goToPage("prev")}
@@ -550,7 +541,6 @@ export default function TravelMemoryBoxPage({ params }: { params: { id: string }
         </button>
       </div>
 
-      {/* Quick navigation */}
       <div className="flex gap-2 mt-4 flex-wrap justify-center max-w-md">
         {PAGES.map((page, i) => (
           <button
