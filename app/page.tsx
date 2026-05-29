@@ -66,15 +66,33 @@ const TEMPLATES: Template[] = [
     tagline: "Γεμάτος αναμνήσεις, σκέψεις και συναισθήματα",
     description: "Η πιο σημαντική μέρα της ζωής μας, σε κάθε λεπτομέρεια.",
     features: [
-      "Συναισθήματα που μονο οι φωτογραφίες δεν μπορούν να κρατήσουν ζωντανά.",
+      "Συναισθήματα που μόνο οι φωτογραφίες δεν μπορούν να κρατήσουν ζωντανά",
       "Στιγμές που θέλουμε να θυμόμαστε",
-      "Σκέψεις, αστεία γεγονότα και πράγματα που μόνο εμείς οι δυο ζήσαμε και δεν θέλουμε να ξεχαστούν.",
+      "Σκέψεις και αστεία γεγονότα που μόνο εμείς οι δύο ζήσαμε",
       "Εκτυπώσιμο PDF",
     ],
     price: "24.99€",
     stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
     accentColor: "#D4B8A8",
     previewPath: "/preview/wedding",
+  },
+  {
+    id: "travel",
+    emoji: "✈️",
+    name: "Travel Memory Box",
+    tagline: "Κάθε ταξίδι — μια ιστορία",
+    description: "Κράτησε τις αναμνήσεις από κάθε ταξίδι σου με σφραγίδες διαβατηρίου και templates για 20 προορισμούς.",
+    features: [
+      "20 ταξίδια με πλήρη templates",
+      "Passport style σφραγίδες για κάθε προορισμό",
+      "Φωτογραφίες, γεύσεις και αναμνήσεις",
+      "Ταξιδιωτικό προφίλ & bucket list",
+      "Εκτυπώσιμο PDF",
+    ],
+    price: "29.99€",
+    stripColor: "from-[#2C5F8A] to-[#4A8AB4]",
+    accentColor: "#2C5F8A",
+    previewPath: "/preview/travel",
   },
 ];
 
@@ -129,16 +147,10 @@ function Nav({ scrolled, user }: { scrolled: boolean; user: any }) {
       }`}
     >
       <div className="flex gap-40">
-        <Link
-          href="/"
-          className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]"
-        >
+        <Link href="/" className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]">
           Αρχική
         </Link>
-        <Link
-          href={user ? "/dashboard" : "/login"}
-          className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]"
-        >
+        <Link href={user ? "/dashboard" : "/login"} className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]">
           Λογαριασμός μου
         </Link>
       </div>
@@ -200,7 +212,7 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
           <div className="w-12 h-px bg-[#C4A882] opacity-40" />
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-7 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 max-w-7xl mx-auto">
         {templates.map((box) => (
           <div
             key={box.id}
@@ -231,7 +243,7 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
                   href={`/checkout?template=${box.id}`}
                   className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                 >
-                  ✨ Δημιούργησε το δικό σου Memory Box
+                  ✨ Δημιούργησε το δικό σου
                 </Link>
                 <Link
                   href={`/checkout?template=${box.id}&gift=true`}
