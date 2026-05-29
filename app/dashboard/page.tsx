@@ -32,6 +32,13 @@ const TEMPLATE_INFO: Record<string, any> = {
     color: "from-[#D4B8A8] to-[#E8CCC0]",
     bookPath: "memory-box-wedding",
   },
+  "travel": {
+    emoji: "✈️",
+    name: "Travel Memory Box",
+    hasStory: false,
+    color: "from-[#2C5F8A] to-[#4A8AB4]",
+    bookPath: "memory-box-travel",
+  },
 };
 
 export default function DashboardPage() {
