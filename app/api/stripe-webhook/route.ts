@@ -15,10 +15,15 @@ const supabase = createClient(
 );
 
 const PRICE_TO_TEMPLATE: Record<string, string> = {
+  // Live prices
   "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
   "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
   "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
+  "price_1TcS0TI6cMM6olNfBCI2S324": "travel",
+  // Test prices
   "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
+  "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
+  "price_1TVnMzI6cMM6olNfkwq1wvwO": "our-wedding",
 };
 
 export async function POST(request: NextRequest) {
@@ -30,12 +35,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+    const isTest = signature.includes("test") || body.includes("cs_test_");
+    const stripeKey = isTest
+      ? process.env.STRIPE_SECRET_KEY_TEST
+      : process.env.STRIPE_SECRET_KEY;
+    const webhookSecret = isTest
+      ? process.env.STRIPE_WEBHOOK_SECRET_TEST
+      : process.env.STRIPE_WEBHOOK_SECRET;
+
+    const stripe = require("stripe")(stripeKey);
 
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      webhookSecret
     );
 
     if (event.type === "checkout.session.completed") {
@@ -53,21 +66,24 @@ export async function POST(request: NextRequest) {
       const { data: { users } } = await supabase.auth.admin.listUsers();
       const user = users?.find((u: any) => u.email === customerEmail);
 
-      if (user && templateId) {
-        await supabase.from("memory_boxes").insert({
-          user_id: user.id,
-          template_id: templateId,
-          status: "in_progress",
-          story_status: "pending",
-        });
-      } else {
-        await supabase.from("memory_boxes").insert({
-          template_id: templateId || "first-years",
-          status: "in_progress",
-          story_status: "pending",
-          gift_email: customerEmail,
-        });
+      const existingBox = await supabase
+        .from("memory_boxes")
+        .select("id")
+        .eq("stripe_session_id", session.id)
+        .maybeSingle();
+
+      if (existingBox.data) {
+        return NextResponse.json({ received: true });
       }
+
+      await supabase.from("memory_boxes").insert({
+        user_id: user?.id || null,
+        template_id: templateId || "first-years",
+        status: "in_progress",
+        story_status: "pending",
+        gift_email: customerEmail,
+        stripe_session_id: session.id,
+      });
     }
 
     return NextResponse.json({ received: true });
