@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-const IS_TEST = process.env.NEXT_PUBLIC_STRIPE_MODE === "test";
+const IS_TEST = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test");
 
 const templates: Record<string, any> = {
   "first-years": {
@@ -61,6 +61,25 @@ const templates: Record<string, any> = {
       "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
     ],
     stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
+  },
+  "travel": {
+    emoji: "✈️",
+    name: "Travel Memory Box",
+    basePrice: "29.99",
+    normalLink: IS_TEST
+      ? "https://buy.stripe.com/test_travel_normal"
+      : "https://buy.stripe.com/4gM6oH6jVgqKcwt9EYeZ207",
+    giftLink: IS_TEST
+      ? "https://buy.stripe.com/test_travel_gift"
+      : "https://buy.stripe.com/14A28r37J6QabspdVeeZ208",
+    features: [
+      "20 ταξίδια με πλήρη templates",
+      "Passport style σφραγίδες για κάθε προορισμό",
+      "Φωτογραφίες, γεύσεις και αναμνήσεις",
+      "Ταξιδιωτικό προφίλ & bucket list",
+      "Εκτυπώσιμο PDF",
+    ],
+    stripColor: "from-[#2C5F8A] to-[#4A8AB4]",
   },
 };
 
