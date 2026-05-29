@@ -13,7 +13,8 @@ const STAMP_COLORS = [
   "#8B5E3C", "#2C5F8A", "#2C8A5F", "#8A2C5F", "#5F2C8A", "#8A5F2C"
 ];
 
-const PassportStamp = ({ country, city, date, entryType = "ENTRY", rotation = 0, opacity = 1, color = "#8B5E3C" }) => (
+cconst PassportStamp = ({ country, city, date, entryType = "ENTRY", rotation = 0, opacity = 1, color = "#8B5E3C" }: { country: string; city: string; date: string; entryType?: string; rotation?: number; opacity?: number; color?: string }) => (
+
   <div style={{ transform: `rotate(${rotation}deg)`, opacity, display: "inline-block" }}>
     <svg width="120" height="120" viewBox="0 0 160 160">
       <circle cx="80" cy="80" r="72" fill="none" stroke={color} strokeWidth="3" strokeDasharray="4 2" />
