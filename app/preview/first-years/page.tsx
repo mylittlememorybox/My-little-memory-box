@@ -252,8 +252,8 @@ export default function FirstYearsPreviewPage() {
             </div>
             <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Στιγμές που με έκανες να νιώθω τα πάντα</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <img src="/preview/first-years/baby-moments-1.jpeg" alt="" className={imgClass} />
-              <img src="/preview/first-years/baby-moments-2.jpeg" alt="" className={imgClass} />
+              <img src="/preview/first-years/baby-first-moments-1.jpeg" alt="" className={imgClass} />
+              <img src="/preview/first-years/baby-first-moments-2.jpeg" alt="" className={imgClass} />
             </div>
             <Field label="Η στιγμή που ένιωσα περήφανη για σένα" value={TYPED_CONTENT.moments.proud} delay={200} />
             <Field label="Κάτι μικρό που για μένα ήταν τεράστιο" value={TYPED_CONTENT.moments.small_big} delay={800} />
