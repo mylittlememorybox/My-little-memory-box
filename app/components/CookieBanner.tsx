@@ -7,12 +7,18 @@ export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookies_accepted");
-    if (!accepted) setVisible(true);
+    try {
+      const accepted = localStorage.getItem("cookies_accepted");
+      if (!accepted) setVisible(true);
+    } catch (e) {
+      setVisible(false);
+    }
   }, []);
 
   const accept = () => {
-    localStorage.setItem("cookies_accepted", "true");
+    try {
+      localStorage.setItem("cookies_accepted", "true");
+    } catch (e) {}
     setVisible(false);
   };
 
@@ -39,10 +45,20 @@ export default function CookieBanner() {
       <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
         <span style={{ fontSize: "24px" }}>🍪</span>
         <div>
-          <p style={{ fontSize: "14px", color: "#5C3820", fontFamily: "Georgia, serif", marginBottom: "4px" }}>
+          <p style={{
+            fontSize: "14px",
+            color: "#5C3820",
+            fontFamily: "Georgia, serif",
+            marginBottom: "4px",
+          }}>
             χρησιμοποιούμε cookies
           </p>
-          <p style={{ fontSize: "12px", color: "#B09880", fontWeight: "300", lineHeight: "1.6" }}>
+          <p style={{
+            fontSize: "12px",
+            color: "#B09880",
+            fontWeight: "300",
+            lineHeight: "1.6",
+          }}>
             χρησιμοποιούμε μόνο απαραίτητα cookies για τη σύνδεση και την ασφάλεια του λογαριασμού σας.{" "}
             <Link href="/cookies" style={{ color: "#8B5E3C", textDecoration: "underline" }}>
               μάθετε περισσότερα
@@ -64,6 +80,7 @@ export default function CookieBanner() {
             cursor: "pointer",
             letterSpacing: "1px",
             textDecoration: "none",
+            display: "inline-block",
           }}
         >
           περισσότερα
