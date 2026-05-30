@@ -35,7 +35,7 @@ const PassportStamp = ({ country, city, date, entryType = "VISITED", rotation = 
 const SAMPLE_TRIPS = [
   {
     country: "Ιταλία", city: "Ρώμη", date: "MAR 2023",
-    with_who: "Με τον σύντροφό μου", transport: "✈️ Αεροπλάνο",
+    with_who: "Με τον Σπύρο", transport: "✈️ Αεροπλάνο",
     accommodation: "Boutique hotel κοντά στο Colosseum",
     food: "Cacio e pepe και gelato 🍦", restaurant: "Trattoria da Enzo al 29",
     best_moment: "Η πρώτη ματιά στο Colosseum — δεν είχαμε λόγια",
@@ -44,8 +44,15 @@ const SAMPLE_TRIPS = [
     would_do_again: "Βραδινός περίπατος στη Fontana di Trevi",
     would_not_do: "Τουριστικά εστιατόρια δίπλα σε πλατείες",
     takeaway: "Η ομορφιά κρύβεται στις μικρές πλατείες",
-    return: "Ναι — χωρίς δεύτερη σκέψη", rating: "⭐⭐⭐⭐⭐",
-    photos: ["/preview/travel/rome-1.jpg", "/preview/travel/rome-2.jpg"],
+    return: "Ναι — χωρίς δεύτερη σκέψη", rating: "⭐⭐⭐⭐",
+    photos: [
+      "/preview/travel/rome-1.jpg",
+      "/preview/travel/rome-2.jpg",
+      "/preview/travel/rome-3.jpg",
+      "/preview/travel/rome-4.jpg",
+      "/preview/travel/rome-5.jpg",
+      "/preview/travel/rome-cover.jpg",
+    ],
     cover: "/preview/travel/rome-cover.jpg",
   },
   {
@@ -60,12 +67,19 @@ const SAMPLE_TRIPS = [
     would_not_do: "Tsukiji market την ώρα αιχμής",
     takeaway: "Μερικές φορές ο μοναχικός ταξιδιώτης βλέπει περισσότερα",
     return: "Ναι — για 3 εβδομάδες", rating: "⭐⭐⭐⭐⭐",
-    photos: ["/preview/travel/tokyo-1.jpg", "/preview/travel/tokyo-2.jpg"],
+    photos: [
+      "/preview/travel/tokyo-1.jpg",
+      "/preview/travel/tokyo-2.jpg",
+      "/preview/travel/tokyo-3.jpg",
+      "/preview/travel/tokyo-4.jpg",
+      "/preview/travel/tokyo-5.jpg",
+      "/preview/travel/tokyo-cover.jpg",
+    ],
     cover: "/preview/travel/tokyo-cover.jpg",
   },
   {
     country: "Ελλάδα", city: "Σαντορίνη", date: "JUN 2024",
-    with_who: "Με φίλους", transport: "🚢 Πλοίο από Πειραιά",
+    with_who: "Με τον Σπύρο & φίλους", transport: "🚢 Πλοίο από Πειραιά",
     accommodation: "Villa με πισίνα στη Φηρά",
     food: "Φάβα και ντοματοκεφτέδες 🍅", restaurant: "Ταβέρνα Κατινά στην Οία",
     best_moment: "Ηλιοβασίλεμα στην Οία — σταματάει ο χρόνος",
@@ -74,8 +88,15 @@ const SAMPLE_TRIPS = [
     would_do_again: "Μεσάνυχτα στη Φηρά με κρασί",
     would_not_do: "Ανάβαση με γαϊδούρι",
     takeaway: "Η Ελλάδα έχει μαγεία που απλά νιώθεται",
-    return: "Κάθε χρόνο αν μπορώ!", rating: "⭐⭐⭐⭐⭐",
-    photos: ["/preview/travel/santorini-1.jpg", "/preview/travel/santorini-2.jpg"],
+    return: "Κάθε χρόνο αν μπορώ!", rating: "⭐⭐⭐",
+    photos: [
+      "/preview/travel/santorini-1.jpg",
+      "/preview/travel/santorini-2.jpg",
+      "/preview/travel/santorini-3.jpg",
+      "/preview/travel/santorini-4.jpg",
+      "/preview/travel/santorini-5.jpg",
+      "/preview/travel/santorini-cover.jpg",
+    ],
     cover: "/preview/travel/santorini-cover.jpg",
   },
 ];
@@ -118,9 +139,16 @@ export default function TravelPreviewPage() {
     </div>
   );
 
-  const TripPhoto = ({ src }: { src: string }) => (
+  const TripPhoto = ({ src, full = false }: { src: string; full?: boolean }) => (
     <img src={src} alt="Travel memory"
-      style={{ width: "100%", height: "110px", objectFit: "cover", borderRadius: "8px", border: "3px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+      style={{
+        width: "100%",
+        height: full ? "160px" : "100px",
+        objectFit: "cover",
+        borderRadius: "8px",
+        border: "3px solid white",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+      }}
     />
   );
 
@@ -134,15 +162,13 @@ export default function TravelPreviewPage() {
         </div>
         <p style={{ color: "#A8C4E0", fontSize: "10px", letterSpacing: "4px", textTransform: "uppercase", marginBottom: "8px", fontFamily: "Georgia, serif" }}>✈ My Little Memory Box</p>
         <h1 style={{ color: "white", fontSize: "26px", fontFamily: "Georgia, serif", fontWeight: "normal", marginBottom: "6px" }}>Travel Memory Box</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "12px 0 20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "12px 0 16px" }}>
           <div style={{ width: "40px", height: "1px", background: "#A8C4E0", opacity: 0.5 }} />
           <span style={{ color: "#A8C4E0", fontSize: "14px" }}>✦</span>
           <div style={{ width: "40px", height: "1px", background: "#A8C4E0", opacity: 0.5 }} />
         </div>
-        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: "4px" }}>Μαρία & Γιώργης</p>
+        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: "4px" }}>Μαρία & Σπύρος</p>
         <p style={{ color: "#A8C4E0", fontSize: "11px", letterSpacing: "2px" }}>2020 — σήμερα</p>
-
-        {/* Cover photos collage */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", marginTop: "16px", width: "100%" }}>
           {SAMPLE_TRIPS.map((trip, i) => (
             <img key={i} src={trip.cover} alt={trip.city}
@@ -150,13 +176,8 @@ export default function TravelPreviewPage() {
             />
           ))}
         </div>
-
         <div style={{ display: "flex", gap: "6px", marginTop: "12px", opacity: 0.5, justifyContent: "center" }}>
-          {[
-            { city: "ROMA", rot: -8 },
-            { city: "TOKYO", rot: 5 },
-            { city: "SANTORINI", rot: -4 },
-          ].map((s, i) => (
+          {[{ city: "ROMA", rot: -8 }, { city: "TOKYO", rot: 5 }, { city: "SANTORINI", rot: -4 }].map((s, i) => (
             <div key={i} style={{ transform: `rotate(${s.rot}deg)` }}>
               <svg width="45" height="45" viewBox="0 0 160 160">
                 <circle cx="80" cy="80" r="72" fill="none" stroke="#A8C4E0" strokeWidth="3" strokeDasharray="4 2" />
@@ -187,7 +208,7 @@ export default function TravelPreviewPage() {
       const color = STAMP_COLORS[idx % STAMP_COLORS.length];
       return (
         <div style={{ overflowY: "auto", height: "100%", padding: "0 4px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
             <h2 style={{ fontSize: "17px", color: "#0D2B4A", fontFamily: "Georgia, serif", fontWeight: "normal" }}>✈ Ταξίδι #{idx + 1}</h2>
             <PassportStamp country={trip.country} city={trip.city} date={trip.date} rotation={(idx % 3 - 1) * 6} opacity={0.85} color={color} />
           </div>
@@ -199,8 +220,8 @@ export default function TravelPreviewPage() {
             <Field label="Με ποιον" value={trip.with_who} />
           </div>
 
-          {/* Real photos */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
+          {/* Φωτό 1-2 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "8px" }}>
             <TripPhoto src={trip.photos[0]} />
             <TripPhoto src={trip.photos[1]} />
           </div>
@@ -210,16 +231,32 @@ export default function TravelPreviewPage() {
             <Field label="Μέσο μεταφοράς" value={trip.transport} />
           </Section>
 
+          {/* Φωτό 3 — full width */}
+          <div style={{ marginBottom: "8px" }}>
+            <TripPhoto src={trip.photos[2]} full />
+          </div>
+
           <Section title="🍽️ Γεύσεις">
             <Field label="Αγαπημένο φαγητό" value={trip.food} />
             <Field label="Αγαπημένο εστιατόριο" value={trip.restaurant} />
           </Section>
+
+          {/* Φωτό 4-5 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "8px" }}>
+            <TripPhoto src={trip.photos[3]} />
+            <TripPhoto src={trip.photos[4]} />
+          </div>
 
           <Field label="⭐ Καλύτερη στιγμή" value={trip.best_moment} />
           <Field label="😮 Έκπληξη" value={trip.surprise} />
           <Field label="😄 Αστεία στιγμή" value={trip.funny} />
           <Field label="✅ Θα ξανάκανα" value={trip.would_do_again} />
           <Field label="❌ Δεν θα ξανάκανα" value={trip.would_not_do} />
+
+          {/* Φωτό 6 — full width */}
+          <div style={{ marginBottom: "8px" }}>
+            <TripPhoto src={trip.photos[5]} full />
+          </div>
 
           <Section title="💭 Σκέψεις">
             <Field label="Τι κράτησα" value={trip.takeaway} />
@@ -238,7 +275,7 @@ export default function TravelPreviewPage() {
         <Field label="Bucket list" value="🗺️ Νέα Ζηλανδία · 🏔️ Παταγονία · 🌏 Νότια Αφρική · 🏝️ Μαλδίβες · 🇵🇪 Μάτσου Πίτσου" />
         <Field label="Επόμενο ταξίδι" value="Πορτογαλία — Σεπτέμβριο 2025" />
         <Field label="Ταξίδι ονείρων" value="3 μήνες στην Ασία — Ιαπωνία, Ταϊλάνδη, Βιετνάμ" />
-        <Field label="Ταξιδιωτικός σύντροφος" value="Ο ένας για τον άλλον — πάντα" />
+        <Field label="Ταξιδιωτικός σύντροφος" value="Ο Σπύρος — πάντα" />
         <Field label="Το πιο σημαντικό που έμαθα" value="Τα ταξίδια δεν είναι προορισμοί — είναι άνθρωποι που συναντάς" />
       </div>
     );
