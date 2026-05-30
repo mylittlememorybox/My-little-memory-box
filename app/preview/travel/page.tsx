@@ -143,8 +143,9 @@ export default function TravelPreviewPage() {
     <img src={src} alt="Travel memory"
       style={{
         width: "100%",
-        height: full ? "160px" : "100px",
-        objectFit: "cover",
+        height: full ? "180px" : "110px",
+        objectFit: "contain",
+        backgroundColor: "rgba(26,74,122,0.06)",
         borderRadius: "8px",
         border: "3px solid white",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -172,7 +173,7 @@ export default function TravelPreviewPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", marginTop: "16px", width: "100%" }}>
           {SAMPLE_TRIPS.map((trip, i) => (
             <img key={i} src={trip.cover} alt={trip.city}
-              style={{ width: "100%", height: "70px", objectFit: "cover", borderRadius: "6px", border: "2px solid rgba(255,255,255,0.3)" }}
+              style={{ width: "100%", height: "70px", objectFit: "contain", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "6px", border: "2px solid rgba(255,255,255,0.3)" }}
             />
           ))}
         </div>
