@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         .eq("id", memoryBoxId);
     }
 
-    const giftUrl = `https://mylittlememorybox.gr/gift/${giftToken}`;
+    const giftUrl = `https://www.mylittlememorybox.gr/gift/${giftToken}`;
 
     const qrCodeDataUrl = await QRCode.toDataURL(giftUrl, {
       width: 300,
@@ -99,7 +99,14 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json({ success: true, giftToken });
+    // Επιστρέφουμε και το QR και το link για το frontend
+    return NextResponse.json({
+      success: true,
+      giftToken,
+      qrCodeDataUrl,
+      giftUrl,
+    });
+
   } catch (error) {
     console.error("Email error:", error);
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
