@@ -2,91 +2,98 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-const IS_TEST = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test");
-
-const templates: Record<string, any> = {
-  "first-years": {
-    emoji: "🍼",
-    name: "Τα Πρώτα Χρόνια",
-    basePrice: "29.99",
-    normalLink: IS_TEST
-      ? "https://buy.stripe.com/test_aFa6oHcIj4I2cwtcRaeZ201"
-      : "https://buy.stripe.com/aFa6oHcIj4I2cwtcRaeZ201",
-    giftLink: IS_TEST
-      ? "https://buy.stripe.com/test_6oU4gz4bN0rMbsp6sMeZ204"
-      : "https://buy.stripe.com/6oU4gz4bN0rMbsp6sMeZ204",
-    features: [
-      "Ψηφιακό λεύκωμα με όλες τις σημαντικές στιγμές από τα πρώτα χρόνια του μωρού σας",
-      "Προσωποποιημένο ebook παραμύθι με ήρωα το παιδί σας",
-      "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
-      "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
-    ],
-    stripColor: "from-[#C49090] to-[#D4ACAC]",
-  },
-  "me-and-you": {
-    emoji: "💑",
-    name: "Εγώ και Εσύ",
-    basePrice: "29.99",
-    normalLink: IS_TEST
-      ? "https://buy.stripe.com/test_3cI4gzdMn3DY0NL7wQeZ205"
-      : "https://buy.stripe.com/3cI4gzdMn3DY0NL7wQeZ205",
-    giftLink: IS_TEST
-      ? "https://buy.stripe.com/test_bJe6oHbEf8Yi2VT4kEeZ206"
-      : "https://buy.stripe.com/bJe6oHbEf8Yi2VT4kEeZ206",
-    features: [
-      "Η ιστορία της σχέσης μας μέσα σε ένα Memory Box γεμάτο αναμνήσεις και φωτογραφίες",
-      "Για να μείνει το συναίσθημα μας ζωντανό μέσα στο χρόνο",
-      "Ένα ebook με ήρωες εσάς και το άλλο σας μισό",
-      "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
-      "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
-    ],
-    stripColor: "from-[#C4A882] to-[#D4BC98]",
-  },
-  "our-wedding": {
-    emoji: "💍",
-    name: "Ο Γάμος Μας",
-    basePrice: "24.99",
-    normalLink: IS_TEST
-      ? "https://buy.stripe.com/test_14A6oH23F0rM9kh3gAeZ202"
-      : "https://buy.stripe.com/14A6oH23F0rM9kh3gAeZ202",
-    giftLink: IS_TEST
-      ? "https://buy.stripe.com/test_eVq8wP5fRdeyeEB9EYeZ203"
-      : "https://buy.stripe.com/eVq8wP5fRdeyeEB9EYeZ203",
-    features: [
-      "Ένα Memory Box γεμάτο με όλες τις στιγμές και τα συναισθήματα της πιο σημαντικής μέρας της ζωής σας",
-      "Που δεν θέλετε να χαθούν μέσα στο χρόνο",
-      "Γεγονότα και συναισθήματα που μόνο οι φωτογραφίες δεν μπορούν κρατήσουν ζωντανά",
-      "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
-      "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
-    ],
-    stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
-  },
-  "travel": {
-    emoji: "✈️",
-    name: "Travel Memory Box",
-    basePrice: "29.99",
-    normalLink: IS_TEST
-      ? "https://buy.stripe.com/test_4gM6oH6jVgqKcwt9EYeZ207"
-      : "https://buy.stripe.com/4gM6oH6jVgqKcwt9EYeZ207",
-    giftLink: IS_TEST
-      ? "https://buy.stripe.com/test_14A28r37J6QabspdVeeZ208"
-      : "https://buy.stripe.com/14A28r37J6QabspdVeeZ208",
-    features: [
-      "20 ταξίδια με πλήρη templates",
-      "Passport style σφραγίδες για κάθε προορισμό",
-      "Φωτογραφίες, γεύσεις και αναμνήσεις",
-      "Ταξιδιωτικό προφίλ & bucket list",
-      "Εκτυπώσιμο PDF",
-    ],
-    stripColor: "from-[#2C5F8A] to-[#4A8AB4]",
-  },
-};
+import { useState, useEffect } from "react";
 
 export default function CheckoutContent() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get("template") || "first-years";
   const isGift = searchParams.get("gift") === "true";
+  const [isTest, setIsTest] = useState(false);
+
+  useEffect(() => {
+    setIsTest(
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test") ?? false
+    );
+  }, []);
+
+  const templates: Record<string, any> = {
+    "first-years": {
+      emoji: "🍼",
+      name: "Τα Πρώτα Χρόνια",
+      basePrice: "29.99",
+      normalLink: isTest
+        ? "https://buy.stripe.com/test_aFa6oHcIj4I2cwtcRaeZ201"
+        : "https://buy.stripe.com/aFa6oHcIj4I2cwtcRaeZ201",
+      giftLink: isTest
+        ? "https://buy.stripe.com/test_6oU4gz4bN0rMbsp6sMeZ204"
+        : "https://buy.stripe.com/6oU4gz4bN0rMbsp6sMeZ204",
+      features: [
+        "Ψηφιακό λεύκωμα με όλες τις σημαντικές στιγμές από τα πρώτα χρόνια του μωρού σας",
+        "Προσωποποιημένο ebook παραμύθι με ήρωα το παιδί σας",
+        "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
+        "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
+      ],
+      stripColor: "from-[#C49090] to-[#D4ACAC]",
+    },
+    "me-and-you": {
+      emoji: "💑",
+      name: "Εγώ και Εσύ",
+      basePrice: "29.99",
+      normalLink: isTest
+        ? "https://buy.stripe.com/test_3cI4gzdMn3DY0NL7wQeZ205"
+        : "https://buy.stripe.com/3cI4gzdMn3DY0NL7wQeZ205",
+      giftLink: isTest
+        ? "https://buy.stripe.com/test_bJe6oHbEf8Yi2VT4kEeZ206"
+        : "https://buy.stripe.com/bJe6oHbEf8Yi2VT4kEeZ206",
+      features: [
+        "Η ιστορία της σχέσης μας μέσα σε ένα Memory Box γεμάτο αναμνήσεις και φωτογραφίες",
+        "Για να μείνει το συναίσθημα μας ζωντανό μέσα στο χρόνο",
+        "Ένα ebook με ήρωες εσάς και το άλλο σας μισό",
+        "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
+        "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
+      ],
+      stripColor: "from-[#C4A882] to-[#D4BC98]",
+    },
+    "our-wedding": {
+      emoji: "💍",
+      name: "Ο Γάμος Μας",
+      basePrice: "24.99",
+      normalLink: isTest
+        ? "https://buy.stripe.com/test_14A6oH23F0rM9kh3gAeZ202"
+        : "https://buy.stripe.com/14A6oH23F0rM9kh3gAeZ202",
+      giftLink: isTest
+        ? "https://buy.stripe.com/test_eVq8wP5fRdeyeEB9EYeZ203"
+        : "https://buy.stripe.com/eVq8wP5fRdeyeEB9EYeZ203",
+      features: [
+        "Ένα Memory Box γεμάτο με όλες τις στιγμές και τα συναισθήματα της πιο σημαντικής μέρας της ζωής σας",
+        "Που δεν θέλετε να χαθούν μέσα στο χρόνο",
+        "Γεγονότα και συναισθήματα που μόνο οι φωτογραφίες δεν μπορούν κρατήσουν ζωντανά",
+        "Πρόσβαση χωρίς περιορισμό χρόνου για συμπλήρωση",
+        "Πρόσβαση 30 ημέρες για download αφού ολοκληρώσετε",
+      ],
+      stripColor: "from-[#D4B8A8] to-[#E8CCC0]",
+    },
+    "travel": {
+      emoji: "✈️",
+      name: "Travel Memory Box",
+      basePrice: "29.99",
+      normalLink: isTest
+        ? "https://buy.stripe.com/test_4gM6oH6jVgqKcwt9EYeZ207"
+        : "https://buy.stripe.com/4gM6oH6jVgqKcwt9EYeZ207",
+      giftLink: isTest
+        ? "https://buy.stripe.com/test_14A28r37J6QabspdVeeZ208"
+        : "https://buy.stripe.com/14A28r37J6QabspdVeeZ208",
+      features: [
+        "20 ταξίδια με πλήρη templates",
+        "Passport style σφραγίδες για κάθε προορισμό",
+        "Φωτογραφίες, γεύσεις και αναμνήσεις",
+        "Ταξιδιωτικό προφίλ & bucket list",
+        "Εκτυπώσιμο PDF",
+      ],
+      stripColor: "from-[#2C5F8A] to-[#4A8AB4]",
+    },
+  };
+
   const template = templates[templateId];
 
   if (!template) {
@@ -120,7 +127,7 @@ export default function CheckoutContent() {
           </div>
         )}
 
-        {IS_TEST && (
+        {isTest && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-6 text-center">
             <p className="text-yellow-600 text-xs font-light">⚠️ Test Mode — Χρησιμοποιήστε κάρτα 4242 4242 4242 4242</p>
           </div>
@@ -135,7 +142,6 @@ export default function CheckoutContent() {
 
         <div className="bg-white rounded-3xl overflow-hidden shadow-lg mb-8">
           <div className={`h-2 bg-gradient-to-r ${template.stripColor}`} />
-
           <div className="p-8">
             <div className="mb-8">
               <h3 className="font-serif text-lg text-[#8B5E3C] mb-5">Τι περιλαμβάνει:</h3>
