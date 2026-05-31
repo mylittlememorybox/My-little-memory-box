@@ -67,10 +67,10 @@ const templates: Record<string, any> = {
     name: "Travel Memory Box",
     basePrice: "29.99",
     normalLink: IS_TEST
-      ? "https://buy.stripe.com/test_travel_normal"
+      ? "https://buy.stripe.com/test_4gM6oH6jVgqKcwt9EYeZ207"
       : "https://buy.stripe.com/4gM6oH6jVgqKcwt9EYeZ207",
     giftLink: IS_TEST
-      ? "https://buy.stripe.com/test_travel_gift"
+      ? "https://buy.stripe.com/test_14A28r37J6QabspdVeeZ208"
       : "https://buy.stripe.com/14A28r37J6QabspdVeeZ208",
     features: [
       "20 ταξίδια με πλήρη templates",
