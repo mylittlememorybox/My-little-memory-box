@@ -11,9 +11,7 @@ export default function CheckoutContent() {
   const [isTest, setIsTest] = useState(false);
 
   useEffect(() => {
-    setIsTest(
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test") ?? false
-    );
+    setIsTest(process.env.NEXT_PUBLIC_IS_TEST === "true");
   }, []);
 
   const templates: Record<string, any> = {
