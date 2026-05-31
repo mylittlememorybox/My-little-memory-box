@@ -43,15 +43,19 @@ function LoginContent() {
         setError("Λάθος email ή κωδικός. Δοκιμάστε ξανά.");
         return;
       }
+if (giftToken && authData.user) {
+  await fetch("/api/claim-gift", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      giftToken,
+      userId: authData.user.id,
+    }),
+  });
+}
 
-      if (giftToken && authData.user) {
-        await supabase
-          .from("memory_boxes")
-          .update({ user_id: authData.user.id })
-          .eq("gift_token", giftToken);
-      }
+router.push("/dashboard");
 
-      router.push("/dashboard");
     } catch (err) {
       setError("Σφάλμα κατά τη σύνδεση. Δοκιμάστε ξανά.");
     } finally {
