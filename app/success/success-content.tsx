@@ -12,6 +12,8 @@ export default function SuccessContent() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [memoryBoxId, setMemoryBoxId] = useState<string | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [giftLink, setGiftLink] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionId) {
@@ -37,7 +39,7 @@ export default function SuccessContent() {
 
   const handleSendGift = async () => {
     if (!email) {
-      alert("Παρακαλώ εισάγετε το email σας");
+      alert("Παρακαλώ εισάγετε το email του παραλήπτη");
       return;
     }
     setLoading(true);
@@ -47,7 +49,10 @@ export default function SuccessContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, memoryBoxId }),
       });
+      const data = await response.json();
       if (response.ok) {
+        setQrCodeUrl(data.qrCodeDataUrl);
+        setGiftLink(data.giftUrl);
         setSent(true);
       } else {
         alert("Σφάλμα κατά την αποστολή. Δοκιμάστε ξανά.");
@@ -57,6 +62,20 @@ export default function SuccessContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadQR = () => {
+    if (!qrCodeUrl) return;
+    const link = document.createElement("a");
+    link.href = qrCodeUrl;
+    link.download = "gift-qr-code.png";
+    link.click();
+  };
+
+  const handleCopyLink = () => {
+    if (!giftLink) return;
+    navigator.clipboard.writeText(giftLink);
+    alert("Το link αντιγράφηκε! 🎁");
   };
 
   return (
@@ -134,10 +153,42 @@ export default function SuccessContent() {
               </>
             ) : (
               <>
-                <div className="text-6xl mb-6">✅</div>
-                <p className="text-[#B09880] font-light mb-6 leading-relaxed">
-                  Στείλαμε το QR code στον παραλήπτη! Μόλις το σκανάρει θα μπορεί να ξεκινήσει το Memory Box του.
+                <div className="text-6xl mb-4">✅</div>
+                <p className="text-[#B09880] font-light mb-8 leading-relaxed">
+                  Στείλαμε το QR code στον παραλήπτη! Μπορείτε επίσης να το κατεβάσετε ή να αντιγράψετε το link για να το στείλετε μέσω Viber, WhatsApp κλπ.
                 </p>
+
+                {/* QR Code εμφάνιση */}
+                {qrCodeUrl && (
+                  <div className="bg-white rounded-3xl p-8 shadow-lg mb-6">
+                    <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-4">
+                      QR Code Δώρου
+                    </p>
+                    <img
+                      src={qrCodeUrl}
+                      alt="QR Code"
+                      className="w-48 h-48 mx-auto mb-6"
+                    />
+                    <div className="space-y-3">
+                      <button
+                        onClick={handleDownloadQR}
+                        className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+                      >
+                        📥 Κατέβασε το QR
+                      </button>
+                      <button
+                        onClick={handleCopyLink}
+                        className="w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+                      >
+                        🔗 Αντιγραφή Link Δώρου
+                      </button>
+                    </div>
+                    <p className="text-xs text-[#B09880] mt-4 font-light">
+                      Στείλτε το QR ή το link μέσω Viber, WhatsApp, SMS ή όπου θέλετε!
+                    </p>
+                  </div>
+                )}
+
                 <Link
                   href="/"
                   className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
