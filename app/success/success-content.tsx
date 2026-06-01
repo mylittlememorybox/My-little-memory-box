@@ -14,6 +14,7 @@ export default function SuccessContent() {
   const [memoryBoxId, setMemoryBoxId] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [giftLink, setGiftLink] = useState<string | null>(null);
+  const [loadingBox, setLoadingBox] = useState(false);
 
   useEffect(() => {
     if (sessionId) {
@@ -22,6 +23,7 @@ export default function SuccessContent() {
   }, [sessionId]);
 
   const createMemoryBox = async () => {
+    setLoadingBox(true);
     try {
       const response = await fetch("/api/create-memory-box", {
         method: "POST",
@@ -34,6 +36,8 @@ export default function SuccessContent() {
       }
     } catch (error) {
       console.error("Error creating memory box:", error);
+    } finally {
+      setLoadingBox(false);
     }
   };
 
@@ -141,13 +145,20 @@ export default function SuccessContent() {
                   />
                   <button
                     onClick={handleSendGift}
-                    disabled={loading || !memoryBoxId}
+                    disabled={loading}
                     className="w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                   >
                     {loading ? "Αποστολή..." : "🎁 Αποστολή QR code"}
                   </button>
-                  {!memoryBoxId && (
-                    <p className="text-xs text-[#B09880] mt-3">Φόρτωση...</p>
+                  {loadingBox && (
+                    <p className="text-xs text-[#B09880] mt-3">
+                      ⏳ Φόρτωση Memory Box...
+                    </p>
+                  )}
+                  {!sessionId && (
+                    <p className="text-xs text-[#B09880] mt-3">
+                      ℹ️ Το QR θα δημιουργηθεί για το τελευταίο αγορασμένο Memory Box
+                    </p>
                   )}
                 </div>
               </>
@@ -158,7 +169,6 @@ export default function SuccessContent() {
                   Στείλαμε το QR code στον παραλήπτη! Μπορείτε επίσης να το κατεβάσετε ή να αντιγράψετε το link για να το στείλετε μέσω Viber, WhatsApp κλπ.
                 </p>
 
-                {/* QR Code εμφάνιση */}
                 {qrCodeUrl && (
                   <div className="bg-white rounded-3xl p-8 shadow-lg mb-6">
                     <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-4">
