@@ -3,6 +3,8 @@ import nodemailer from "nodemailer";
 import QRCode from "qrcode";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+
 const supabase = createClient(
   "https://jephluxdlbabgufalgtz.supabase.co",
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,8 +23,24 @@ export async function POST(request: NextRequest) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
-    if (memoryBoxId) {
-      await supabase
+    let finalMemoryBoxId = memoryBoxId;
+
+    if (!finalMemoryBoxId) {
+      const { data: latestBox } = await supabase
+        .from("memory_boxes")
+        .select("id")
+        .is("gift_token", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestBox) {
+        finalMemoryBoxId = latestBox.id;
+      }
+    }
+
+    if (finalMemoryBoxId) {
+      const { error: updateError } = await supabase
         .from("memory_boxes")
         .update({
           gift_token: giftToken,
@@ -30,7 +48,11 @@ export async function POST(request: NextRequest) {
           gift_expires_at: expiryDate.toISOString(),
           is_gift: true,
         })
-        .eq("id", memoryBoxId);
+        .eq("id", finalMemoryBoxId);
+
+      if (updateError) {
+        console.error("Update error:", updateError);
+      }
     }
 
     const giftUrl = `https://www.mylittlememorybox.gr/gift/${giftToken}`;
@@ -66,7 +88,6 @@ export async function POST(request: NextRequest) {
             <h1 style="color: #8B5E3C; font-size: 28px; margin-bottom: 10px;">My Little Memory Box</h1>
             <p style="color: #C4A882; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">Ένα ξεχωριστό δώρο για εσάς</p>
           </div>
-
           <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 20px;">
             <p style="color: #8B5E3C; font-size: 18px; margin-bottom: 20px;">Έχετε λάβει ένα Memory Box! 🎁</p>
             <p style="color: #7A6055; font-size: 14px; line-height: 1.8; margin-bottom: 30px;">
@@ -78,7 +99,6 @@ export async function POST(request: NextRequest) {
               Ανοίξτε το Memory Box σας
             </a>
           </div>
-
           <div style="text-align: center; margin-top: 20px;">
             <p style="color: #B09880; font-size: 12px;">
               Το link ισχύει έως: ${expiryDate.toLocaleDateString("el-GR")}
@@ -99,7 +119,6 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Επιστρέφουμε και το QR και το link για το frontend
     return NextResponse.json({
       success: true,
       giftToken,
