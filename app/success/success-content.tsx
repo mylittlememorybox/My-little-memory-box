@@ -17,10 +17,10 @@ export default function SuccessContent() {
   const [loadingBox, setLoadingBox] = useState(false);
 
   useEffect(() => {
-    if (sessionId) {
+    if (sessionId && type === "gift") {
       createMemoryBox();
     }
-  }, [sessionId]);
+  }, [sessionId, type]);
 
   const createMemoryBox = async () => {
     setLoadingBox(true);
@@ -44,6 +44,10 @@ export default function SuccessContent() {
   const handleSendGift = async () => {
     if (!email) {
       alert("Παρακαλώ εισάγετε το email του παραλήπτη");
+      return;
+    }
+    if (loadingBox) {
+      alert("Παρακαλώ περιμένετε να φορτώσει το Memory Box...");
       return;
     }
     setLoading(true);
@@ -136,6 +140,23 @@ export default function SuccessContent() {
                   Βάλτε το email του παραλήπτη για να λάβει το QR code του δώρου.
                 </p>
                 <div className="bg-white rounded-3xl p-8 shadow-lg">
+
+                  {loadingBox && (
+                    <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-4 text-center">
+                      <p className="text-sm text-[#8B5E3C] font-light">
+                        ⏳ Φόρτωση Memory Box... παρακαλώ περιμένετε
+                      </p>
+                    </div>
+                  )}
+
+                  {!loadingBox && memoryBoxId && (
+                    <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-4 text-center">
+                      <p className="text-sm text-[#8B5E3C] font-light">
+                        ✅ Το Memory Box είναι έτοιμο!
+                      </p>
+                    </div>
+                  )}
+
                   <input
                     type="email"
                     value={email}
@@ -145,21 +166,11 @@ export default function SuccessContent() {
                   />
                   <button
                     onClick={handleSendGift}
-                    disabled={loading}
+                    disabled={loading || loadingBox}
                     className="w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                   >
-                    {loading ? "Αποστολή..." : "🎁 Αποστολή QR code"}
+                    {loading ? "Αποστολή..." : loadingBox ? "⏳ Φόρτωση..." : "🎁 Αποστολή QR code"}
                   </button>
-                  {loadingBox && (
-                    <p className="text-xs text-[#B09880] mt-3">
-                      ⏳ Φόρτωση Memory Box...
-                    </p>
-                  )}
-                  {!sessionId && (
-                    <p className="text-xs text-[#B09880] mt-3">
-                      ℹ️ Το QR θα δημιουργηθεί για το τελευταίο αγορασμένο Memory Box
-                    </p>
-                  )}
                 </div>
               </>
             ) : (
