@@ -203,4 +203,165 @@ function HeroSection() {
       <div className="mt-9">
         <Link
           href="#boxes"
-          className="inline-block px-10 py-4 border-
+          className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
+        >
+          Δες τα Memory Boxes ↓
+        </Link>
+      </div>
+      <div className="mt-14 flex flex-col items-center gap-2">
+        <p className="text-[#B09880] text-xs tracking-wider uppercase">Scroll</p>
+        <div className="w-px h-10 bg-gradient-to-b from-[#C4A882] to-transparent" />
+      </div>
+    </section>
+  );
+}
+
+function TemplatesSection({ templates }: { templates: Template[] }) {
+  return (
+    <section id="boxes" className="py-20 px-6 bg-[#F2E8DE]">
+      <div className="text-center mb-16">
+        <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Τα λευκώματά μας</p>
+        <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-4 reveal">Επίλεξε το Memory Box σου</h2>
+        <div className="flex items-center justify-center gap-2 mt-4 reveal">
+          <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+          <span className="text-[#C4A882] text-xs">✦</span>
+          <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 max-w-7xl mx-auto">
+        {templates.map((box) => (
+          <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all reveal">
+            <div className={`h-1 bg-gradient-to-r ${box.stripColor}`} />
+            <div className="p-8 text-center">
+              <div className="text-4xl mb-3">{box.emoji}</div>
+              <h3 className="text-2xl font-serif font-normal text-[#5C3820] mb-1">{box.name}</h3>
+              <p className="text-xs tracking-widest uppercase text-[#B09880] mb-4">{box.tagline}</p>
+              <p className="text-sm font-light text-[#7A6055] leading-relaxed text-left mb-4">{box.description}</p>
+            </div>
+            <hr className="h-px bg-[#C4A882] opacity-15 mx-7 my-5" />
+            <ul className="px-7 space-y-1.5 text-sm font-light text-[#7A6055]">
+              {box.features.map((feat, i) => (
+                <li key={i} className="flex gap-2.5 border-b border-[rgba(196,168,130,0.12)] pb-1.5 last:border-b-0">
+                  <div className="w-1 h-1 rounded-full flex-shrink-0 mt-1.5" style={{ background: box.accentColor }} />
+                  {feat}
+                </li>
+              ))}
+            </ul>
+            <div className="p-7 text-center border-t border-[rgba(196,168,130,0.15)]">
+              <div className="text-2xl font-serif font-normal text-[#5C3820] mb-4">{box.price}</div>
+              <div className="flex flex-col gap-2">
+                <Link href={`/checkout?template=${box.id}`} className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center">
+                  ✨ Δημιούργησε το δικό σου
+                </Link>
+                <Link href={`/checkout?template=${box.id}&gift=true`} className="block w-full py-3 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center">
+                  🎁 Κάντο Δώρο
+                </Link>
+                <Link href={box.previewPath} className="block w-full py-3 bg-white text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center border border-[#C4A882]">
+                  👁️ Δες ένα δείγμα
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HowItWorksSection() {
+  return (
+    <section className="py-20 px-6 bg-[#F9F2EC] text-center">
+      <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Απλά και γρήγορα</p>
+      <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-2 reveal">Πώς λειτουργεί</h2>
+      <div className="flex items-center justify-center gap-2 mt-4 mb-12 reveal">
+        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+        <span className="text-[#C4A882] text-xs">✦</span>
+        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-2xl mx-auto">
+        {[
+          { num: "01", title: "Επίλεξε Memory Box", desc: "Διάλεξε αυτό που ταιριάζει στην περίσταση" },
+          { num: "02", title: "Συμπλήρωσε το", desc: "Πρόσθεσε φωτογραφίες και λόγια αγάπης" },
+          { num: "03", title: "Μοιράσου το", desc: "Λήψη PDF ή αποστολή ως ψηφιακό δώρο με QR code" },
+        ].map((step) => (
+          <div key={step.num} className="reveal">
+            <div className="text-4xl font-serif font-light text-[rgba(196,168,130,0.35)] mb-2">{step.num}</div>
+            <h3 className="text-[#8B5E3C] font-serif text-lg font-normal mb-2">{step.title}</h3>
+            <p className="text-sm font-light text-[#B09880] leading-relaxed">{step.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className="py-20 px-6 bg-[#F2E8DE]">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Βοήθεια</p>
+          <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-4 reveal">Συχνές Ερωτήσεις</h2>
+          <div className="flex items-center justify-center gap-2 mt-4 reveal">
+            <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+            <span className="text-[#C4A882] text-xs">✦</span>
+            <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-sm p-8 reveal">
+          {FAQ_PREVIEW.map((item, i) => (
+            <div key={i} className="border-b border-[rgba(196,168,130,0.2)] last:border-0">
+              <button
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full text-left py-5 flex items-center justify-between gap-4"
+              >
+                <span className="text-sm font-normal text-[#5C3820] leading-relaxed">{item.q}</span>
+                <span className={`text-[#C4A882] text-lg flex-shrink-0 transition-transform duration-200 ${openIndex === i ? "rotate-45" : ""}`}>+</span>
+              </button>
+              {openIndex === i && (
+                <div className="pb-5 pr-8">
+                  <p className="text-sm font-light text-[#7A6055] leading-relaxed">{item.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-8 reveal">
+          <Link
+            href="/faq"
+            className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
+          >
+            Δες όλες τις ερωτήσεις →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-[#F2E8DE] py-14 px-6 text-center border-t border-[rgba(196,168,130,0.2)]">
+      <div className="font-script text-2xl text-[#8B5E3C] mb-1">My Little Memory Box</div>
+      <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-4">mylittlememorybox.gr</p>
+      <hr className="w-16 mx-auto my-5 border-none h-px bg-[rgba(196,168,130,0.3)]" />
+      <div className="flex justify-center gap-6 mb-4 text-xs text-[#B09880]">
+        <Link href="/faq" className="hover:text-[#8B5E3C] transition-colors">Συχνές Ερωτήσεις</Link>
+        <span>·</span>
+        <Link href="/privacy" className="hover:text-[#8B5E3C] transition-colors">Πολιτική Απορρήτου</Link>
+        <span>·</span>
+        <Link href="/terms" className="hover:text-[#8B5E3C] transition-colors">Όροι Χρήσης</Link>
+        <span>·</span>
+        <Link href="/cookies" className="hover:text-[#8B5E3C] transition-colors">Cookies</Link>
+      </div>
+      <p className="text-xs font-light text-[#B09880] mb-2">© 2025 My Little Memory Box - Όλα τα δικαιώματα διατηρούνται</p>
+      <a href="mailto:info@mylittlememorybox.gr" className="text-xs text-[#C4A882] hover:text-[#8B5E3C] block">
+        info@mylittlememorybox.gr
+      </a>
+    </footer>
+  );
+}
