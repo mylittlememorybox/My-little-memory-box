@@ -49,30 +49,18 @@ export default function GiftPage({ params }: { params: { token: string } }) {
     setLoading(false);
   };
 
-  const handleClaim = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user && gift) {
-      await supabase
-        .from("memory_boxes")
-        .update({ user_id: user.id })
-        .eq("gift_token", params.token);
-
-      const TEMPLATE_PATHS: Record<string, string> = {
-        "first-years": "memory-box",
-        "me-and-you": "memory-box-couple",
-        "our-wedding": "memory-box-wedding",
-      };
-
-      const path = TEMPLATE_PATHS[gift.template_id] || "memory-box";
-      router.push(`/${path}/${gift.id}`);
-    }
-  };
-
   const TEMPLATE_NAMES: Record<string, string> = {
     "first-years": "Τα Πρώτα Χρόνια 🍼",
     "me-and-you": "Εγώ & Εσύ 💑",
     "our-wedding": "Ο Γάμος Μας 💍",
+    "travel": "Travel Memory Box ✈️",
+  };
+
+  const TEMPLATE_PATHS: Record<string, string> = {
+    "first-years": "memory-box",
+    "me-and-you": "memory-box-couple",
+    "our-wedding": "memory-box-wedding",
+    "travel": "memory-box-travel",
   };
 
   if (loading) {
@@ -146,7 +134,7 @@ export default function GiftPage({ params }: { params: { token: string } }) {
 
         <div className="bg-white rounded-3xl shadow-lg p-8 mb-6">
           <div className="text-3xl mb-3">
-            {TEMPLATE_NAMES[gift.template_id]}
+            {TEMPLATE_NAMES[gift.template_id] || gift.template_id}
           </div>
           <p className="text-[#7A6055] font-light leading-relaxed mb-6">
             Κάποιος σε σκέφτηκε και σου χάρισε ένα ξεχωριστό δώρο. Δημιούργησε τον λογαριασμό σου για να το ανοίξεις και να αρχίσεις να το συμπληρώνεις!
