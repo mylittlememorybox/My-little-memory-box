@@ -85,9 +85,11 @@ function RegisterContent() {
             userId: authData.user.id,
           }),
         });
+        router.push("/dashboard");
+        return;
       }
 
-      router.push("/dashboard");
+      router.push("/register-success");
     } catch (err) {
       setError("Σφάλμα κατά την εγγραφή. Δοκιμάστε ξανά.");
     } finally {
