@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const STAMP_COLORS = ["#1A4A7A", "#2E6B9E", "#1A6B5A", "#7A1A4A", "#4A1A7A", "#7A4A1A"];
@@ -31,6 +31,38 @@ const PassportStamp = ({ country, city, date, entryType = "VISITED", rotation = 
     </svg>
   </div>
 );
+
+function TypewriterText({ text, delay = 0 }: { text: string; delay?: number }) {
+  const [displayed, setDisplayed] = useState("");
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    setDisplayed("");
+    setStarted(false);
+    const startTimer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(startTimer);
+  }, [text, delay]);
+
+  useEffect(() => {
+    if (!started) return;
+    if (displayed.length >= text.length) return;
+    const timer = setTimeout(() => {
+      setDisplayed(text.slice(0, displayed.length + 1));
+    }, 30);
+    return () => clearTimeout(timer);
+  }, [displayed, text, started]);
+
+  return (
+    <span>
+      {displayed}
+      {displayed.length < text.length && started && (
+        <span style={{ borderRight: "1px solid #1A4A7A", marginLeft: "1px", animation: "blink 0.7s infinite" }}>
+          <style>{`@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }`}</style>
+        </span>
+      )}
+    </span>
+  );
+}
 
 const SAMPLE_TRIPS = [
   {
@@ -125,10 +157,12 @@ export default function TravelPreviewPage() {
     }
   };
 
-  const Field = ({ label, value }: { label: string; value: string }) => (
+  const Field = ({ label, value, delayOffset = 0 }: { label: string; value: string; delayOffset?: number }) => (
     <div style={{ marginBottom: "10px" }}>
       <p style={{ fontSize: "9px", color: "#1A4A7A", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "3px", fontFamily: "Georgia, serif" }}>{label}</p>
-      <p style={{ fontSize: "12px", color: "#0D2B4A", borderBottom: "1px dotted #A8C4E0", paddingBottom: "4px", fontFamily: "Georgia, serif", fontStyle: "italic", minHeight: "20px" }}>{value}</p>
+      <p style={{ fontSize: "12px", color: "#0D2B4A", borderBottom: "1px dotted #A8C4E0", paddingBottom: "4px", fontFamily: "Georgia, serif", fontStyle: "italic", minHeight: "20px" }}>
+        <TypewriterText text={value} delay={delayOffset} />
+      </p>
     </div>
   );
 
@@ -159,7 +193,7 @@ export default function TravelPreviewPage() {
     if (page.key === "cover") return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", background: "linear-gradient(160deg, #0D2B4A 0%, #1A4A7A 50%, #0D3D5C 100%)", margin: "-16px", borderRadius: "12px", padding: "30px", textAlign: "center" }}>
         <div style={{ background: "white", borderRadius: "50px", padding: "10px 24px", marginBottom: "20px", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
-          <img src="/logo.png" alt="Logo" style={{ width: "80px", height: "auto" }} />
+          <img src="/logo.png" alt="Logo" style={{ width: "120px", height: "auto" }} />
         </div>
         <p style={{ color: "#A8C4E0", fontSize: "10px", letterSpacing: "4px", textTransform: "uppercase", marginBottom: "8px", fontFamily: "Georgia, serif" }}>✈ My Little Memory Box</p>
         <h1 style={{ color: "white", fontSize: "26px", fontFamily: "Georgia, serif", fontWeight: "normal", marginBottom: "6px" }}>Travel Memory Box</h1>
@@ -195,11 +229,11 @@ export default function TravelPreviewPage() {
     if (page.key === "profile") return (
       <div style={{ padding: "0 8px", overflowY: "auto", height: "100%" }}>
         <h2 style={{ fontSize: "18px", color: "#0D2B4A", fontFamily: "Georgia, serif", fontWeight: "normal", textAlign: "center", marginBottom: "20px" }}>✈ Ταξιδιωτικό Προφίλ</h2>
-        <Field label="Το πρώτο μου ταξίδι" value="Θεσσαλονίκη, Ελλάδα — 2018" />
-        <Field label="Χώρες που έχω επισκεφτεί" value="23 χώρες και μετράμε..." />
-        <Field label="Αγαπημένος προορισμός" value="Ιαπωνία — αλλάζει κάθε χρόνο!" />
-        <Field label="Ονειρεμένος προορισμός" value="Νέα Ζηλανδία & Παταγονία" />
-        <Field label="Η φιλοσοφία μου" value="Μια βαλίτσα, δύο καρδιές, άπειρες ιστορίες" />
+        <Field label="Το πρώτο μου ταξίδι" value="Θεσσαλονίκη, Ελλάδα — 2018" delayOffset={0} />
+        <Field label="Χώρες που έχω επισκεφτεί" value="23 χώρες και μετράμε..." delayOffset={400} />
+        <Field label="Αγαπημένος προορισμός" value="Ιαπωνία — αλλάζει κάθε χρόνο!" delayOffset={800} />
+        <Field label="Ονειρεμένος προορισμός" value="Νέα Ζηλανδία & Παταγονία" delayOffset={1200} />
+        <Field label="Η φιλοσοφία μου" value="Μια βαλίτσα, δύο καρδιές, άπειρες ιστορίες" delayOffset={1600} />
       </div>
     );
 
@@ -215,54 +249,50 @@ export default function TravelPreviewPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "10px" }}>
-            <Field label="Χώρα" value={trip.country} />
-            <Field label="Πόλη" value={trip.city} />
-            <Field label="Ημερομηνία" value={trip.date} />
-            <Field label="Με ποιον" value={trip.with_who} />
+            <Field label="Χώρα" value={trip.country} delayOffset={0} />
+            <Field label="Πόλη" value={trip.city} delayOffset={200} />
+            <Field label="Ημερομηνία" value={trip.date} delayOffset={400} />
+            <Field label="Με ποιον" value={trip.with_who} delayOffset={600} />
           </div>
 
-          {/* Φωτό 1-2 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "8px" }}>
             <TripPhoto src={trip.photos[0]} />
             <TripPhoto src={trip.photos[1]} />
           </div>
 
           <Section title="🏨 Διαμονή">
-            <Field label="Που μείναμε" value={trip.accommodation} />
-            <Field label="Μέσο μεταφοράς" value={trip.transport} />
+            <Field label="Που μείναμε" value={trip.accommodation} delayOffset={800} />
+            <Field label="Μέσο μεταφοράς" value={trip.transport} delayOffset={1000} />
           </Section>
 
-          {/* Φωτό 3 — full width */}
           <div style={{ marginBottom: "8px" }}>
             <TripPhoto src={trip.photos[2]} full />
           </div>
 
           <Section title="🍽️ Γεύσεις">
-            <Field label="Αγαπημένο φαγητό" value={trip.food} />
-            <Field label="Αγαπημένο εστιατόριο" value={trip.restaurant} />
+            <Field label="Αγαπημένο φαγητό" value={trip.food} delayOffset={1200} />
+            <Field label="Αγαπημένο εστιατόριο" value={trip.restaurant} delayOffset={1400} />
           </Section>
 
-          {/* Φωτό 4-5 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "8px" }}>
             <TripPhoto src={trip.photos[3]} />
             <TripPhoto src={trip.photos[4]} />
           </div>
 
-          <Field label="⭐ Καλύτερη στιγμή" value={trip.best_moment} />
-          <Field label="😮 Έκπληξη" value={trip.surprise} />
-          <Field label="😄 Αστεία στιγμή" value={trip.funny} />
-          <Field label="✅ Θα ξανάκανα" value={trip.would_do_again} />
-          <Field label="❌ Δεν θα ξανάκανα" value={trip.would_not_do} />
+          <Field label="⭐ Καλύτερη στιγμή" value={trip.best_moment} delayOffset={1600} />
+          <Field label="😮 Έκπληξη" value={trip.surprise} delayOffset={1800} />
+          <Field label="😄 Αστεία στιγμή" value={trip.funny} delayOffset={2000} />
+          <Field label="✅ Θα ξανάκανα" value={trip.would_do_again} delayOffset={2200} />
+          <Field label="❌ Δεν θα ξανάκανα" value={trip.would_not_do} delayOffset={2400} />
 
-          {/* Φωτό 6 — full width */}
           <div style={{ marginBottom: "8px" }}>
             <TripPhoto src={trip.photos[5]} full />
           </div>
 
           <Section title="💭 Σκέψεις">
-            <Field label="Τι κράτησα" value={trip.takeaway} />
+            <Field label="Τι κράτησα" value={trip.takeaway} delayOffset={2600} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
-              <p style={{ fontSize: "10px", color: "#1A4A7A", fontFamily: "Georgia" }}>Θα επέστρεφα: <span style={{ color: "#0D2B4A", fontStyle: "italic" }}>{trip.return}</span></p>
+              <p style={{ fontSize: "10px", color: "#1A4A7A", fontFamily: "Georgia" }}>Θα επέστρεφα: <span style={{ color: "#0D2B4A", fontStyle: "italic" }}><TypewriterText text={trip.return} delay={2800} /></span></p>
               <p style={{ fontSize: "12px" }}>{trip.rating}</p>
             </div>
           </Section>
@@ -273,11 +303,11 @@ export default function TravelPreviewPage() {
     if (page.key === "dreams") return (
       <div style={{ padding: "0 8px", overflowY: "auto", height: "100%" }}>
         <h2 style={{ fontSize: "18px", color: "#0D2B4A", fontFamily: "Georgia, serif", fontWeight: "normal", textAlign: "center", marginBottom: "20px" }}>🌟 Ταξιδιωτικά Όνειρα</h2>
-        <Field label="Bucket list" value="🗺️ Νέα Ζηλανδία · 🏔️ Παταγονία · 🌏 Νότια Αφρική · 🏝️ Μαλδίβες · 🇵🇪 Μάτσου Πίτσου" />
-        <Field label="Επόμενο ταξίδι" value="Πορτογαλία — Σεπτέμβριο 2025" />
-        <Field label="Ταξίδι ονείρων" value="3 μήνες στην Ασία — Ιαπωνία, Ταϊλάνδη, Βιετνάμ" />
-        <Field label="Ταξιδιωτικός σύντροφος" value="Ο Σπύρος — πάντα" />
-        <Field label="Το πιο σημαντικό που έμαθα" value="Τα ταξίδια δεν είναι προορισμοί — είναι άνθρωποι που συναντάς" />
+        <Field label="Bucket list" value="🗺️ Νέα Ζηλανδία · 🏔️ Παταγονία · 🌏 Νότια Αφρική · 🏝️ Μαλδίβες · 🇵🇪 Μάτσου Πίτσου" delayOffset={0} />
+        <Field label="Επόμενο ταξίδι" value="Πορτογαλία — Σεπτέμβριο 2025" delayOffset={500} />
+        <Field label="Ταξίδι ονείρων" value="3 μήνες στην Ασία — Ιαπωνία, Ταϊλάνδη, Βιετνάμ" delayOffset={1000} />
+        <Field label="Ταξιδιωτικός σύντροφος" value="Ο Σπύρος — πάντα" delayOffset={1500} />
+        <Field label="Το πιο σημαντικό που έμαθα" value="Τα ταξίδια δεν είναι προορισμοί — είναι άνθρωποι που συναντάς" delayOffset={2000} />
       </div>
     );
 
@@ -302,10 +332,18 @@ export default function TravelPreviewPage() {
         transition: "all 0.35s ease",
         overflow: "hidden",
       }}>
+        {/* Header με κλικ στο λογότυπο → εξώφυλλο */}
         <div style={{ background: "#F8F4EE", borderBottom: "1px solid rgba(26,74,122,0.15)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <img src="/logo.png" alt="Logo" style={{ width: "48px", height: "auto" }} />
+          <img
+            src="/logo.png"
+            alt="Logo"
+            onClick={() => setCurrentPage(0)}
+            style={{ width: "64px", height: "auto", cursor: "pointer", transition: "opacity 0.2s" }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          />
           <p style={{ fontSize: "9px", color: "#1A4A7A", letterSpacing: "3px", textTransform: "uppercase", fontFamily: "Georgia, serif" }}>✈ Travel Memory Box</p>
-          <div style={{ width: "48px" }} />
+          <div style={{ width: "64px" }} />
         </div>
 
         <div style={{ padding: "16px", minHeight: "490px" }}>
