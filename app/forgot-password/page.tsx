@@ -20,10 +20,19 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Διαβάζει το token από το URL hash
+    // Ακούει για auth state change από Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setReady(true);
+      }
+    });
+
+    // Επίσης ελέγχει hash και search params
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
-    const refreshToken = hashParams.get("refresh_token");
+    const searchParams = new URLSearchParams(window.location.search);
+
+    const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token");
 
     if (accessToken && refreshToken) {
       supabase.auth.setSession({
@@ -36,10 +45,20 @@ export default function ResetPasswordPage() {
           setReady(true);
         }
       });
-    } else {
-      setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
     }
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  // Αν μετά από 3 δευτερόλεπτα δεν έχει γίνει ready, δείξε error
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!ready) {
+        setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   const handleUpdate = async () => {
     setError("");
@@ -83,12 +102,8 @@ export default function ResetPasswordPage() {
           {done ? (
             <div className="text-center space-y-4">
               <p className="text-4xl">✅</p>
-              <p className="text-[#7A6055] font-light">
-                Ο κωδικός άλλαξε επιτυχώς!
-              </p>
-              <p className="text-sm text-[#C4A882] font-light">
-                Θα μεταφερθείτε στη σύνδεση αυτόματα...
-              </p>
+              <p className="text-[#7A6055] font-light">Ο κωδικός άλλαξε επιτυχώς!</p>
+              <p className="text-sm text-[#C4A882] font-light">Θα μεταφερθείτε στη σύνδεση αυτόματα...</p>
             </div>
           ) : !ready ? (
             <div className="text-center space-y-4">
