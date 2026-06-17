@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,28 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }).then(({ error }) => {
+        if (error) {
+          setError("Ο σύνδεσμος έχει λήξει. Ζητήστε νέο.");
+        } else {
+          setReady(true);
+        }
+      });
+    } else {
+      setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
+    }
+  }, []);
 
   const handleUpdate = async () => {
     setError("");
@@ -25,8 +47,12 @@ export default function ResetPasswordPage() {
     if (password.length < 6) { setError("Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες."); return; }
     setLoading(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError) { setError("Σφάλμα. Δοκιμάστε ξανά."); }
-    else { setDone(true); setTimeout(() => router.push("/login"), 3000); }
+    if (updateError) {
+      setError("Σφάλμα. Δοκιμάστε ξανά.");
+    } else {
+      setDone(true);
+      setTimeout(() => router.push("/login"), 3000);
+    }
     setLoading(false);
   };
 
@@ -56,12 +82,25 @@ export default function ResetPasswordPage() {
           {done ? (
             <div className="text-center space-y-4">
               <p className="text-4xl">✅</p>
-              <p className="text-[#7A6055] font-light">
-                Ο κωδικός άλλαξε επιτυχώς!
-              </p>
-              <p className="text-sm text-[#C4A882] font-light">
-                Θα μεταφερθείτε στη σύνδεση αυτόματα...
-              </p>
+              <p className="text-[#7A6055] font-light">Ο κωδικός άλλαξε επιτυχώς!</p>
+              <p className="text-sm text-[#C4A882] font-light">Θα μεταφερθείτε στη σύνδεση αυτόματα...</p>
+            </div>
+          ) : !ready ? (
+            <div className="text-center space-y-4">
+              {error ? (
+                <>
+                  <p className="text-4xl">❌</p>
+                  <p className="text-red-600 text-sm font-light">{error}</p>
+                  <Link
+                    href="/forgot-password"
+                    className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4"
+                  >
+                    Ζητήστε νέο email
+                  </Link>
+                </>
+              ) : (
+                <p className="text-[#B09880] font-light">⏳ Φόρτωση...</p>
+              )}
             </div>
           ) : (
             <>
