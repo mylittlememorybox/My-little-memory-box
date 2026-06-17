@@ -1,77 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function ResetPasswordPage() {
-  const router = useRouter();
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
-  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    // Ακούει για auth state change από Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setReady(true);
-      }
-    });
-
-    // Επίσης ελέγχει hash και search params
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const searchParams = new URLSearchParams(window.location.search);
-
-    const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
-    const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token");
-
-    if (accessToken && refreshToken) {
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ error }) => {
-        if (error) {
-          setError("Ο σύνδεσμος έχει λήξει. Ζητήστε νέο.");
-        } else {
-          setReady(true);
-        }
-      });
-    }
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Αν μετά από 3 δευτερόλεπτα δεν έχει γίνει ready, δείξε error
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!ready) {
-        setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [ready]);
-
-  const handleUpdate = async () => {
+  const handleSubmit = async () => {
     setError("");
-    if (!password || !confirm) { setError("Συμπληρώστε και τα δύο πεδία."); return; }
-    if (password !== confirm) { setError("Οι κωδικοί δεν ταιριάζουν."); return; }
-    if (password.length < 6) { setError("Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες."); return; }
+    if (!email) { setError("Παρακαλώ εισάγετε το email σας."); return; }
     setLoading(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError) {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://mylittlememorybox.gr/reset-password",
+    });
+    if (resetError) {
       setError("Σφάλμα. Δοκιμάστε ξανά.");
     } else {
-      setDone(true);
-      setTimeout(() => router.push("/login"), 3000);
+      setSent(true);
     }
     setLoading(false);
   };
@@ -89,7 +43,7 @@ export default function ResetPasswordPage() {
       <div className="pt-12 pb-20 px-6 max-w-xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-serif text-[#8B5E3C] mb-4">
-            Νέος Κωδικός
+            Ξεχάσατε τον Κωδικό;
           </h1>
           <div className="flex items-center justify-center gap-2 mt-4">
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
@@ -99,44 +53,33 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-lg p-8">
-          {done ? (
+          {sent ? (
             <div className="text-center space-y-4">
-              <p className="text-4xl">✅</p>
-              <p className="text-[#7A6055] font-light">Ο κωδικός άλλαξε επιτυχώς!</p>
-              <p className="text-sm text-[#C4A882] font-light">Θα μεταφερθείτε στη σύνδεση αυτόματα...</p>
-            </div>
-          ) : !ready ? (
-            <div className="text-center space-y-4">
-              {error ? (
-                <>
-                  <p className="text-4xl">❌</p>
-                  <p className="text-red-600 text-sm font-light">{error}</p>
-                  <Link
-                    href="/forgot-password"
-                    className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4"
-                  >
-                    Ζητήστε νέο email
-                  </Link>
-                </>
-              ) : (
-                <p className="text-[#B09880] font-light">⏳ Φόρτωση...</p>
-              )}
+              <p className="text-4xl">📧</p>
+              <p className="text-[#7A6055] font-light">
+                Σας στείλαμε email με οδηγίες επαναφοράς κωδικού!
+              </p>
+              <p className="text-sm text-[#B09880] font-light">
+                Ελέγξτε και τα spam/ανεπιθύμητα!
+              </p>
+              <Link
+                href="/login"
+                className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4"
+              >
+                Επιστροφή στη Σύνδεση
+              </Link>
             </div>
           ) : (
             <>
+              <p className="text-sm text-[#B09880] font-light mb-6 text-center">
+                Εισάγετε το email σας και θα σας στείλουμε οδηγίες για να ορίσετε νέο κωδικό.
+              </p>
               <div className="space-y-4 mb-6">
                 <input
-                  type="password"
-                  placeholder="Νέος κωδικός"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-4 rounded-full border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]"
-                />
-                <input
-                  type="password"
-                  placeholder="Επιβεβαίωση κωδικού"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-5 py-4 rounded-full border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]"
                 />
               </div>
@@ -146,12 +89,18 @@ export default function ResetPasswordPage() {
                 </div>
               )}
               <button
-                onClick={handleUpdate}
+                onClick={handleSubmit}
                 disabled={loading}
                 className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
               >
-                {loading ? "Αποθήκευση..." : "Αποθήκευση Κωδικού"}
+                {loading ? "Αποστολή..." : "Αποστολή Email"}
               </button>
+              <Link
+                href="/login"
+                className="block w-full py-3 text-center text-[#C4A882] text-sm font-light hover:text-[#8B5E3C] transition-colors mt-4"
+              >
+                Επιστροφή στη Σύνδεση
+              </Link>
             </>
           )}
         </div>
