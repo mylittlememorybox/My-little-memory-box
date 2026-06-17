@@ -20,6 +20,14 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // Ακούει για auth state change από Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setReady(true);
+      }
+    });
+
+    // Επίσης ελέγχει hash και search params
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const searchParams = new URLSearchParams(window.location.search);
 
@@ -37,16 +45,20 @@ export default function ResetPasswordPage() {
           setReady(true);
         }
       });
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setReady(true);
-        } else {
-          setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
-        }
-      });
     }
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  // Αν μετά από 3 δευτερόλεπτα δεν έχει γίνει ready, δείξε error
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!ready) {
+        setError("Μη έγκυρος σύνδεσμος. Ζητήστε νέο email επαναφοράς.");
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   const handleUpdate = async () => {
     setError("");
