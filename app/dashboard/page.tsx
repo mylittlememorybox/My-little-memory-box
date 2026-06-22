@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -10,212 +10,232 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const TEMPLATE_NAMES: Record<string, string> = {
-  "first-years": "Τα Πρώτα Χρόνια 🍼",
-  "me-and-you": "Εγώ & Εσύ 💑",
-  "our-wedding": "Ο Γάμος Μας 💍",
-  "travel": "Travel Memory Box ✈️",
+const TEMPLATE_INFO: Record<string, any> = {
+  "first-years": {
+    emoji: "🍼",
+    name: "Τα Πρώτα Χρόνια",
+    hasStory: true,
+    color: "from-[#C49090] to-[#D4ACAC]",
+    bookPath: "memory-box",
+  },
+  "me-and-you": {
+    emoji: "💑",
+    name: "Εγώ & Εσύ",
+    hasStory: true,
+    color: "from-[#C4A882] to-[#D4BC98]",
+    bookPath: "memory-box-couple",
+  },
+  "our-wedding": {
+    emoji: "💍",
+    name: "Ο Γάμος Μας",
+    hasStory: false,
+    color: "from-[#D4B8A8] to-[#E8CCC0]",
+    bookPath: "memory-box-wedding",
+  },
+  "travel": {
+    emoji: "✈️",
+    name: "Travel Memory Box",
+    hasStory: false,
+    color: "from-[#2C5F8A] to-[#4A8AB4]",
+    bookPath: "memory-box-travel",
+  },
 };
 
-export default function ReviewPage() {
+export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [hasBox, setHasBox] = useState(false);
+  const [memoryBoxes, setMemoryBoxes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [content, setContent] = useState("");
-  const [name, setName] = useState("");
-  const [templateId, setTemplateId] = useState("");
-  const [consent, setConsent] = useState(false);
-  const [error, setError] = useState("");
+  const [showReviewPopup, setShowReviewPopup] = useState(false);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      setUser(user);
-      setName(user.user_metadata?.full_name || "");
-
-      const { data: boxes } = await supabase
-        .from("memory_boxes")
-        .select("id, template_id")
-        .eq("user_id", user.id)
-        .limit(1);
-
-      if (boxes && boxes.length > 0) {
-        setHasBox(true);
-        setTemplateId(boxes[0].template_id);
-      }
-      setLoading(false);
-    };
     checkUser();
   }, []);
 
-  const handleSubmit = async () => {
-    setError("");
-    if (!content) { setError("Παρακαλώ γράψτε την αξιολόγησή σας."); return; }
-    if (!name) { setError("Παρακαλώ εισάγετε το όνομά σας."); return; }
-    if (!consent) { setError("Παρακαλώ αποδεχτείτε τη συγκατάθεση δημοσιοποίησης."); return; }
-
-    setSubmitting(true);
-    const { error: insertError } = await supabase
-      .from("reviews")
-      .insert({
-        user_id: user.id,
-        name,
-        template_id: templateId,
-        rating,
-        content,
-        approved: false,
-      });
-
-    if (insertError) {
-      setError("Σφάλμα κατά την υποβολή. Δοκιμάστε ξανά.");
-    } else {
-      setDone(true);
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
     }
-    setSubmitting(false);
+    setUser(user);
+    await loadMemoryBoxes(user.id);
+    await checkReviewPopup(user.id);
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center">
-      <p className="text-[#B09880] font-light">Φόρτωση...</p>
-    </div>
-  );
+  const loadMemoryBoxes = async (userId: string) => {
+    const { data } = await supabase
+      .from("memory_boxes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (data) setMemoryBoxes(data);
+    setLoading(false);
+  };
 
-  if (!hasBox) return (
-    <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
-      <div className="text-center">
-        <div className="text-6xl mb-4">🔒</div>
-        <h1 className="text-2xl font-serif text-[#8B5E3C] mb-4">Μόνο για αγοραστές</h1>
-        <p className="text-[#B09880] font-light mb-6">Πρέπει να έχετε αγοράσει ένα Memory Box για να αφήσετε αξιολόγηση.</p>
-        <Link href="/#boxes" className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all">
-          Δείτε τα Memory Box
-        </Link>
+  const checkReviewPopup = async (userId: string) => {
+    const { data } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1);
+    if (!data || data.length === 0) {
+      setTimeout(() => setShowReviewPopup(true), 1500);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center">
+        <p className="text-[#B09880] font-light">Φόρτωση...</p>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F9F2EC]">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-6 py-6 flex justify-center">
+
+      {/* Review Popup */}
+      {showReviewPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-6"
+          onClick={() => setShowReviewPopup(false)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-5xl mb-4">💛</div>
+            <h2 className="text-2xl font-serif text-[#8B5E3C] mb-3">Πώς σας φάνηκε;</h2>
+            <div className="flex items-center justify-center gap-2 my-4">
+              <div className="w-8 h-px bg-[#C4A882] opacity-40" />
+              <span className="text-[#C4A882] text-xs">✦</span>
+              <div className="w-8 h-px bg-[#C4A882] opacity-40" />
+            </div>
+            <p className="text-sm font-light text-[#7A6055] leading-relaxed mb-6">
+              Η εμπειρία σας μετράει πολύ για εμάς! Αφιερώστε ένα λεπτό για να μας πείτε τη γνώμη σας. 🌸
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push("/review")}
+                className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+              >
+                ✨ Αφήστε μας ένα Review
+              </button>
+              <button
+                onClick={() => setShowReviewPopup(false)}
+                className="block w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+              >
+                Αργότερα
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt="My Little Memory Box" className="w-24 h-auto object-contain" />
+            <img src="/logo.png" alt="My Little Memory Box" className="w-16 h-auto object-contain" />
           </Link>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-[#B09880] font-light hidden md:block">
+              {user?.email}
+            </p>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-light tracking-widest uppercase text-[#C47878] hover:text-[#8B5E3C] transition-colors"
+            >
+              Αποσύνδεση
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="pt-12 pb-20 px-6 max-w-xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3">Η γνώμη σας μετράει</p>
-          <h1 className="text-4xl font-serif text-[#8B5E3C] mb-4">Αφήστε μια Αξιολόγηση</h1>
-          <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-serif text-[#8B5E3C] mb-3">Καλώς ήρθατε!</h1>
+          <div className="flex items-center justify-center gap-2 my-4">
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
             <span className="text-[#C4A882] text-xs">✦</span>
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
           </div>
+          <p className="text-[#B09880] font-light">Τα Memory Boxes σας</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-lg p-8">
-          {done ? (
-            <div className="text-center space-y-4">
-              <div className="text-6xl">💛</div>
-              <h2 className="text-2xl font-serif text-[#8B5E3C]">Ευχαριστούμε!</h2>
-              <p className="text-[#7A6055] font-light">Η αξιολόγησή σας υποβλήθηκε και θα δημοσιευτεί σύντομα!</p>
-              <Link href="/dashboard" className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4">
-                Επιστροφή στο Dashboard
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3">Όνομα</p>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Το όνομά σας"
-                    className="w-full px-5 py-4 rounded-full border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]"
-                  />
-                </div>
-
-                <div>
-                  <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3">Memory Box</p>
-                  <select
-                    value={templateId}
-                    onChange={(e) => setTemplateId(e.target.value)}
-                    className="w-full px-5 py-4 rounded-full border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC]"
-                  >
-                    {Object.entries(TEMPLATE_NAMES).map(([key, val]) => (
-                      <option key={key} value={key}>{val}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3">Βαθμολογία</p>
-                  <div className="flex gap-3 justify-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => setRating(star)}
-                        className="text-3xl transition-transform hover:scale-110"
+        {memoryBoxes.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📦</div>
+            <p className="text-[#B09880] font-light mb-6">Δεν έχετε ακόμα Memory Box</p>
+            <Link
+              href="/#boxes"
+              className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+            >
+              Αγοράστε το πρώτο σας Memory Box
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {memoryBoxes.map((box) => {
+              const info = TEMPLATE_INFO[box.template_id] || {};
+              return (
+                <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
+                  <div className={`h-2 bg-gradient-to-r ${info.color}`} />
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-3xl">{info.emoji}</span>
+                      <div>
+                        <h3 className="font-serif text-lg text-[#5C3820]">{info.name}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-light ${
+                          box.status === "completed"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-[#F2E8DE] text-[#C4A882]"
+                        }`}>
+                          {box.status === "completed" ? "Ολοκληρωμένο" : "Σε εξέλιξη"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Link
+                        href={`/${info.bookPath}/${box.id}`}
+                        className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
                       >
-                        {star <= rating ? "⭐" : "☆"}
-                      </button>
-                    ))}
+                        📖 Συμπλήρωσε το Memory Box
+                      </Link>
+                      {info.hasStory && (
+                        <>
+                          <Link
+                            href={`/story-details/${box.id}`}
+                            className="block w-full py-3 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
+                          >
+                            ✨ Στοιχεία Παραμυθιού
+                          </Link>
+                          <Link
+                            href={`/my-story/${box.id}`}
+                            className="block w-full py-3 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
+                          >
+                            📚 Το Παραμύθι μου
+                          </Link>
+                        </>
+                      )}
+                      <Link
+                        href={`/download/${box.id}`}
+                        className="block w-full py-3 bg-[#C4A882] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center"
+                      >
+                        ⬇️ Download PDF
+                      </Link>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3">Η εμπειρία σας</p>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Πείτε μας για την εμπειρία σας με το Memory Box..."
-                    rows={5}
-                    className="w-full px-5 py-4 rounded-2xl border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC] resize-none"
-                  />
-                </div>
-
-                <hr className="h-px bg-[#C4A882] opacity-15" />
-
-                <label className="flex gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                    className="mt-1 w-4 h-4 accent-[#C49090] flex-shrink-0"
-                  />
-                  <span className="text-sm font-light text-[#7A6055] leading-relaxed">
-                    <span className="text-[#C47878]">*</span> Συναινώ στη δημοσιοποίηση της αξιολόγησής μου στο site και σε διαφημιστικό υλικό του My Little Memory Box, σύμφωνα με τον GDPR 2016/679. Κατανοώ ότι το όνομά μου και το κείμενό μου μπορούν να χρησιμοποιηθούν για διαφημιστικούς σκοπούς.
-                  </span>
-                </label>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 my-4">
-                  <p className="text-red-600 text-sm font-light">{error}</p>
-                </div>
-              )}
-
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50 mt-6"
-              >
-                {submitting ? "Υποβολή..." : "✨ Υποβολή Αξιολόγησης"}
-              </button>
-            </>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <footer className="bg-[#F2E8DE] py-8 px-6 text-center border-t border-[rgba(196,168,130,0.2)] mt-12">
