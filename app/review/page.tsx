@@ -196,7 +196,7 @@ export default function ReviewPage() {
                     className="mt-1 w-4 h-4 accent-[#C49090] flex-shrink-0"
                   />
                   <span className="text-sm font-light text-[#7A6055] leading-relaxed">
-                    <span className="text-[#C47878]">*</span> Συναινώ στη δημοσιοποίηση της αξιολόγησής μου στο site και σε διαφημιστικό υλικό του My Little Memory Box, σύμφωνα με τον GDPR 2016/679.
+                    <span className="text-[#C47878]">*</span> Συναινώ στη δημοσιοποίηση της αξιολόγησής μου στο site και σε διαφημιστικό υλικό του My Little Memory Box, σύμφωνα με τον GDPR 2016/679. Κατανοώ ότι το όνομά μου και το κείμενό μου μπορούν να χρησιμοποιηθούν για διαφημιστικούς σκοπούς.
                   </span>
                 </label>
               </div>
