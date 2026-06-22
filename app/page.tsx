@@ -152,8 +152,8 @@ export default function HomePage() {
       <Nav scrolled={scrolled} user={user} />
       <HeroSection />
       <TemplatesSection templates={TEMPLATES} />
-      <HowItWorksSection />
       <ReviewsSection />
+      <HowItWorksSection />
       <FAQSection />
       <Footer />
     </div>
@@ -162,11 +162,9 @@ export default function HomePage() {
 
 function Nav({ scrolled, user }: { scrolled: boolean; user: any }) {
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 px-8 py-4 flex justify-center gap-40 transition-all ${
-        scrolled ? "bg-[rgba(249,242,236,0.96)] backdrop-blur-md shadow-sm" : ""
-      }`}
-    >
+    <nav className={`fixed top-0 left-0 right-0 z-50 px-8 py-4 flex justify-center gap-40 transition-all ${
+      scrolled ? "bg-[rgba(249,242,236,0.96)] backdrop-blur-md shadow-sm" : ""
+    }`}>
       <div className="flex gap-40">
         <Link href="/" className="text-xs font-normal tracking-widest uppercase text-[#8B5E3C] hover:text-[#5C3820]">
           Αρχική
@@ -202,10 +200,7 @@ function HeroSection() {
         Δημιούργησε το δικό σου Memory Box γεμάτο φωτογραφίες και λόγια αγάπης και χάρισε στο παιδί σου ένα προσωποποιημένο ebook παραμύθι.
       </p>
       <div className="mt-9">
-        <Link
-          href="#boxes"
-          className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
-        >
+        <Link href="#boxes" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
           Δες τα Memory Boxes ↓
         </Link>
       </div>
@@ -269,33 +264,6 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
   );
 }
 
-function HowItWorksSection() {
-  return (
-    <section className="py-20 px-6 bg-[#F9F2EC] text-center">
-      <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Απλά και γρήγορα</p>
-      <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-2 reveal">Πώς λειτουργεί</h2>
-      <div className="flex items-center justify-center gap-2 mt-4 mb-12 reveal">
-        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
-        <span className="text-[#C4A882] text-xs">✦</span>
-        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-2xl mx-auto">
-        {[
-          { num: "01", title: "Επίλεξε Memory Box", desc: "Διάλεξε αυτό που ταιριάζει στην περίσταση" },
-          { num: "02", title: "Συμπλήρωσε το", desc: "Πρόσθεσε φωτογραφίες και λόγια αγάπης" },
-          { num: "03", title: "Μοιράσου το", desc: "Λήψη PDF ή αποστολή ως ψηφιακό δώρο με QR code" },
-        ].map((step) => (
-          <div key={step.num} className="reveal">
-            <div className="text-4xl font-serif font-light text-[rgba(196,168,130,0.35)] mb-2">{step.num}</div>
-            <h3 className="text-[#8B5E3C] font-serif text-lg font-normal mb-2">{step.title}</h3>
-            <p className="text-sm font-light text-[#B09880] leading-relaxed">{step.desc}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function ReviewsSection() {
   const [reviews, setReviews] = useState<any[]>([]);
 
@@ -332,7 +300,6 @@ function ReviewsSection() {
             <div className="w-12 h-px bg-[#C4A882] opacity-40" />
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviews.map((review) => (
             <div key={review.id} className="bg-white rounded-3xl shadow-sm p-6 reveal">
@@ -345,7 +312,7 @@ function ReviewsSection() {
                   {TEMPLATE_NAMES[review.template_id]}
                 </p>
               )}
-              <p className="text-sm font-light text-[#7A6055] leading-relaxed italic">
+              <p className="text-sm font-light text-[#7A6055] leading-relaxed">
                 "{review.content}"
               </p>
             </div>
@@ -356,11 +323,38 @@ function ReviewsSection() {
   );
 }
 
+function HowItWorksSection() {
+  return (
+    <section className="py-20 px-6 bg-[#F2E8DE] text-center">
+      <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Απλά και γρήγορα</p>
+      <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-2 reveal">Πώς λειτουργεί</h2>
+      <div className="flex items-center justify-center gap-2 mt-4 mb-12 reveal">
+        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+        <span className="text-[#C4A882] text-xs">✦</span>
+        <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-2xl mx-auto">
+        {[
+          { num: "01", title: "Επίλεξε Memory Box", desc: "Διάλεξε αυτό που ταιριάζει στην περίσταση" },
+          { num: "02", title: "Συμπλήρωσε το", desc: "Πρόσθεσε φωτογραφίες και λόγια αγάπης" },
+          { num: "03", title: "Μοιράσου το", desc: "Λήψη PDF ή αποστολή ως ψηφιακό δώρο με QR code" },
+        ].map((step) => (
+          <div key={step.num} className="reveal">
+            <div className="text-4xl font-serif font-light text-[rgba(196,168,130,0.35)] mb-2">{step.num}</div>
+            <h3 className="text-[#8B5E3C] font-serif text-lg font-normal mb-2">{step.title}</h3>
+            <p className="text-sm font-light text-[#B09880] leading-relaxed">{step.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-20 px-6 bg-[#F2E8DE]">
+    <section className="py-20 px-6 bg-[#F9F2EC]">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Βοήθεια</p>
@@ -390,10 +384,7 @@ function FAQSection() {
           ))}
         </div>
         <div className="text-center mt-8 reveal">
-          <Link
-            href="/faq"
-            className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all"
-          >
+          <Link href="/faq" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
             Δες όλες τις ερωτήσεις →
           </Link>
         </div>
