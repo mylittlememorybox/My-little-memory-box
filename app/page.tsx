@@ -115,6 +115,13 @@ const FAQ_PREVIEW = [
   },
 ];
 
+const TEMPLATE_NAMES: Record<string, string> = {
+  "first-years": "Τα Πρώτα Χρόνια 🍼",
+  "me-and-you": "Εγώ & Εσύ 💑",
+  "our-wedding": "Ο Γάμος Μας 💍",
+  "travel": "Travel Memory Box ✈️",
+};
+
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -266,6 +273,7 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
 
 function ReviewsSection() {
   const [reviews, setReviews] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     supabase
@@ -276,17 +284,11 @@ function ReviewsSection() {
       .limit(6)
       .then(({ data }) => {
         if (data) setReviews(data);
+        setLoaded(true);
       });
   }, []);
 
-  if (reviews.length === 0) return null;
-
-  const TEMPLATE_NAMES: Record<string, string> = {
-    "first-years": "Τα Πρώτα Χρόνια 🍼",
-    "me-and-you": "Εγώ & Εσύ 💑",
-    "our-wedding": "Ο Γάμος Μας 💍",
-    "travel": "Travel Memory Box ✈️",
-  };
+  if (!loaded || reviews.length === 0) return null;
 
   return (
     <section className="py-20 px-6 bg-[#F9F2EC]">
