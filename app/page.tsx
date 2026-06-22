@@ -125,6 +125,7 @@ const TEMPLATE_NAMES: Record<string, string> = {
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -136,6 +137,18 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from("reviews")
+      .select("*")
+      .eq("approved", true)
+      .order("created_at", { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        if (data) setReviews(data);
+      });
   }, []);
 
   useEffect(() => {
@@ -159,7 +172,7 @@ export default function HomePage() {
       <Nav scrolled={scrolled} user={user} />
       <HeroSection />
       <TemplatesSection templates={TEMPLATES} />
-      <ReviewsSection />
+      <ReviewsSection reviews={reviews} />
       <HowItWorksSection />
       <FAQSection />
       <Footer />
@@ -271,24 +284,8 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
   );
 }
 
-function ReviewsSection() {
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    supabase
-      .from("reviews")
-      .select("*")
-      .eq("approved", true)
-      .order("created_at", { ascending: false })
-      .limit(6)
-      .then(({ data }) => {
-        if (data) setReviews(data);
-        setLoaded(true);
-      });
-  }, []);
-
-  if (!loaded || reviews.length === 0) return null;
+function ReviewsSection({ reviews }: { reviews: any[] }) {
+  if (reviews.length === 0) return null;
 
   return (
     <section className="py-20 px-6 bg-[#F9F2EC]">
