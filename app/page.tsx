@@ -143,7 +143,7 @@ export default function HomePage() {
     supabase
       .from("reviews")
       .select("*")
-      .eq("approved", true)
+      .is("approved", true)
       .order("created_at", { ascending: false })
       .limit(6)
       .then(({ data }) => {
