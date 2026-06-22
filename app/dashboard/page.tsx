@@ -79,6 +79,7 @@ export default function DashboardPage() {
       .select("id")
       .eq("user_id", userId)
       .limit(1);
+
     if (!data || data.length === 0) {
       setTimeout(() => setShowReviewPopup(true), 1500);
     }
