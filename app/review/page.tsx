@@ -40,13 +40,11 @@ export default function ReviewPage() {
       }
       setUser(user);
       setName(user.user_metadata?.full_name || "");
-
       const { data: boxes } = await supabase
         .from("memory_boxes")
         .select("id, template_id")
         .eq("user_id", user.id)
         .limit(1);
-
       if (boxes && boxes.length > 0) {
         setHasBox(true);
         setTemplateId(boxes[0].template_id);
@@ -61,7 +59,6 @@ export default function ReviewPage() {
     if (!content) { setError("Παρακαλώ γράψτε την αξιολόγησή σας."); return; }
     if (!name) { setError("Παρακαλώ εισάγετε το όνομά σας."); return; }
     if (!consent) { setError("Παρακαλώ αποδεχτείτε τη συγκατάθεση δημοσιοποίησης."); return; }
-
     setSubmitting(true);
     const { error: insertError } = await supabase
       .from("reviews")
@@ -73,7 +70,6 @@ export default function ReviewPage() {
         content,
         approved: false,
       });
-
     if (insertError) {
       setError("Σφάλμα κατά την υποβολή. Δοκιμάστε ξανά.");
     } else {
@@ -127,10 +123,12 @@ export default function ReviewPage() {
             <div className="text-center space-y-4">
               <div className="text-6xl">💛</div>
               <h2 className="text-2xl font-serif text-[#8B5E3C]">Ευχαριστούμε!</h2>
-              <p className="text-[#7A6055] font-light">Η αξιολόγησή σας υποβλήθηκε και θα δημοσιευτεί σύντομα!</p>
+              <p className="text-[#7A6055] font-light">
+                Η αξιολόγησή σας υποβλήθηκε και θα δημοσιευτεί σύντομα!
+              </p>
               <button
                 onClick={() => router.push("/dashboard")}
-                className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4"
+                className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
               >
                 Επιστροφή στο Dashboard
               </button>
