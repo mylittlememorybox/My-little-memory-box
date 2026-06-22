@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [memoryBoxes, setMemoryBoxes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showReviewPopup, setShowReviewPopup] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -58,7 +59,8 @@ export default function DashboardPage() {
       return;
     }
     setUser(user);
-    loadMemoryBoxes(user.id);
+    await loadMemoryBoxes(user.id);
+    await checkReviewPopup(user.id);
   };
 
   const loadMemoryBoxes = async (userId: string) => {
@@ -70,6 +72,20 @@ export default function DashboardPage() {
 
     if (data) setMemoryBoxes(data);
     setLoading(false);
+  };
+
+  const checkReviewPopup = async (userId: string) => {
+    // Έλεγξε αν έχει ήδη αφήσει review
+    const { data } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1);
+
+    if (!data || data.length === 0) {
+      // Δεν έχει αφήσει review — δείξε popup
+      setTimeout(() => setShowReviewPopup(true), 1500);
+    }
   };
 
   const handleLogout = async () => {
@@ -87,7 +103,48 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F9F2EC]">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+
+      {/* Review Popup */}
+      {showReviewPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-6"
+          onClick={() => setShowReviewPopup(false)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-5xl mb-4">💛</div>
+            <h2 className="text-2xl font-serif text-[#8B5E3C] mb-3">
+              Πώς σας φάνηκε;
+            </h2>
+            <div className="flex items-center justify-center gap-2 my-4">
+              <div className="w-8 h-px bg-[#C4A882] opacity-40" />
+              <span className="text-[#C4A882] text-xs">✦</span>
+              <div className="w-8 h-px bg-[#C4A882] opacity-40" />
+            </div>
+            <p className="text-sm font-light text-[#7A6055] leading-relaxed mb-6">
+              Η εμπειρία σας μετράει πολύ για εμάς! Αφιερώστε ένα λεπτό για να μας πείτε τη γνώμη σας. 🌸
+            </p>
+            <div className="space-y-3">
+              <Link
+                href="/review"
+                className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+              >
+                ✨ Αφήστε μας ένα Review
+              </Link>
+              <button
+                onClick={() => setShowReviewPopup(false)}
+                className="block w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+              >
+                Αργότερα
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="hover:opacity-80 transition-opacity">
             <img src="/logo.png" alt="My Little Memory Box" className="w-16 h-auto object-contain" />
@@ -144,7 +201,6 @@ export default function DashboardPage() {
                   className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all"
                 >
                   <div className={`h-2 bg-gradient-to-r ${info.color}`} />
-
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-3xl">{info.emoji}</span>
