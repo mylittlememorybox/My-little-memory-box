@@ -59,7 +59,9 @@ export default function ReviewPage() {
     if (!content) { setError("Παρακαλώ γράψτε την αξιολόγησή σας."); return; }
     if (!name) { setError("Παρακαλώ εισάγετε το όνομά σας."); return; }
     if (!consent) { setError("Παρακαλώ αποδεχτείτε τη συγκατάθεση δημοσιοποίησης."); return; }
+
     setSubmitting(true);
+
     const { error: insertError } = await supabase
       .from("reviews")
       .insert({
@@ -70,11 +72,21 @@ export default function ReviewPage() {
         content,
         approved: false,
       });
+
     if (insertError) {
       setError("Σφάλμα κατά την υποβολή. Δοκιμάστε ξανά.");
-    } else {
-      setDone(true);
+      setSubmitting(false);
+      return;
     }
+
+    // Στείλε email ειδοποίηση στον admin
+    await fetch("/api/notify-admin-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, content, rating, templateId }),
+    });
+
+    setDone(true);
     setSubmitting(false);
   };
 
