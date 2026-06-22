@@ -153,6 +153,7 @@ export default function HomePage() {
       <HeroSection />
       <TemplatesSection templates={TEMPLATES} />
       <HowItWorksSection />
+      <ReviewsSection />
       <FAQSection />
       <Footer />
     </div>
@@ -290,6 +291,66 @@ function HowItWorksSection() {
             <p className="text-sm font-light text-[#B09880] leading-relaxed">{step.desc}</p>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function ReviewsSection() {
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("reviews")
+      .select("*")
+      .eq("approved", true)
+      .order("created_at", { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        if (data) setReviews(data);
+      });
+  }, []);
+
+  if (reviews.length === 0) return null;
+
+  const TEMPLATE_NAMES: Record<string, string> = {
+    "first-years": "Τα Πρώτα Χρόνια 🍼",
+    "me-and-you": "Εγώ & Εσύ 💑",
+    "our-wedding": "Ο Γάμος Μας 💍",
+    "travel": "Travel Memory Box ✈️",
+  };
+
+  return (
+    <section className="py-20 px-6 bg-[#F9F2EC]">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-3 reveal">Αξιολογήσεις</p>
+          <h2 className="text-[#8B5E3C] font-serif text-4xl font-normal mb-4 reveal">Τι λένε οι πελάτες μας</h2>
+          <div className="flex items-center justify-center gap-2 mt-4 reveal">
+            <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+            <span className="text-[#C4A882] text-xs">✦</span>
+            <div className="w-12 h-px bg-[#C4A882] opacity-40" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reviews.map((review) => (
+            <div key={review.id} className="bg-white rounded-3xl shadow-sm p-6 reveal">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-normal text-[#5C3820]">{review.name}</p>
+                <p className="text-sm">{"⭐".repeat(review.rating)}</p>
+              </div>
+              {review.template_id && (
+                <p className="text-xs text-[#C4A882] tracking-wider mb-3">
+                  {TEMPLATE_NAMES[review.template_id]}
+                </p>
+              )}
+              <p className="text-sm font-light text-[#7A6055] leading-relaxed italic">
+                "{review.content}"
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
