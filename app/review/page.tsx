@@ -10,6 +10,13 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const TEMPLATE_NAMES: Record<string, string> = {
+  "first-years": "Τα Πρώτα Χρόνια 🍼",
+  "me-and-you": "Εγώ & Εσύ 💑",
+  "our-wedding": "Ο Γάμος Μας 💍",
+  "travel": "Travel Memory Box ✈️",
+};
+
 export default function ReviewPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -21,14 +28,8 @@ export default function ReviewPage() {
   const [content, setContent] = useState("");
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("");
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
-
-  const TEMPLATE_NAMES: Record<string, string> = {
-    "first-years": "Τα Πρώτα Χρόνια 🍼",
-    "me-and-you": "Εγώ & Εσύ 💑",
-    "our-wedding": "Ο Γάμος Μας 💍",
-    "travel": "Travel Memory Box ✈️",
-  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -40,7 +41,6 @@ export default function ReviewPage() {
       setUser(user);
       setName(user.user_metadata?.full_name || "");
 
-      // Έλεγξε αν έχει αγορασμένο Memory Box
       const { data: boxes } = await supabase
         .from("memory_boxes")
         .select("id, template_id")
@@ -60,6 +60,7 @@ export default function ReviewPage() {
     setError("");
     if (!content) { setError("Παρακαλώ γράψτε την αξιολόγησή σας."); return; }
     if (!name) { setError("Παρακαλώ εισάγετε το όνομά σας."); return; }
+    if (!consent) { setError("Παρακαλώ αποδεχτείτε τη συγκατάθεση δημοσιοποίησης."); return; }
 
     setSubmitting(true);
     const { error: insertError } = await supabase
@@ -127,9 +128,12 @@ export default function ReviewPage() {
               <div className="text-6xl">💛</div>
               <h2 className="text-2xl font-serif text-[#8B5E3C]">Ευχαριστούμε!</h2>
               <p className="text-[#7A6055] font-light">Η αξιολόγησή σας υποβλήθηκε και θα δημοσιευτεί σύντομα!</p>
-              <Link href="/dashboard" className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="inline-block px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mt-4"
+              >
                 Επιστροφή στο Dashboard
-              </Link>
+              </button>
             </div>
           ) : (
             <>
@@ -183,6 +187,20 @@ export default function ReviewPage() {
                     className="w-full px-5 py-4 rounded-2xl border border-[#C4A882] text-[#7A6055] font-light focus:outline-none focus:border-[#8B5E3C] bg-[#F9F2EC] resize-none"
                   />
                 </div>
+
+                <hr className="h-px bg-[#C4A882] opacity-15" />
+
+                <label className="flex gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-1 w-4 h-4 accent-[#C49090] flex-shrink-0"
+                  />
+                  <span className="text-sm font-light text-[#7A6055] leading-relaxed">
+                    <span className="text-[#C47878]">*</span> Συναινώ στη δημοσιοποίηση της αξιολόγησής μου στο site και σε διαφημιστικό υλικό του My Little Memory Box, σύμφωνα με τον GDPR 2016/679.
+                  </span>
+                </label>
               </div>
 
               {error && (
@@ -191,13 +209,21 @@ export default function ReviewPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50 mt-6"
-              >
-                {submitting ? "Υποβολή..." : "✨ Υποβολή Αξιολόγησης"}
-              </button>
+              <div className="space-y-3 mt-6">
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50"
+                >
+                  {submitting ? "Υποβολή..." : "✨ Υποβολή Αξιολόγησης"}
+                </button>
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+                >
+                  Αργότερα
+                </button>
+              </div>
             </>
           )}
         </div>
