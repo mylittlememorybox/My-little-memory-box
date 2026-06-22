@@ -48,10 +48,14 @@ export default function AdminReviewsPage() {
   };
 
   const handleApprove = async (id: string) => {
-    await supabase
+    const { error } = await supabase
       .from("reviews")
       .update({ approved: true })
       .eq("id", id);
+    if (error) {
+      alert("Σφάλμα κατά την έγκριση. Δοκιμάστε ξανά.");
+      return;
+    }
     loadReviews();
   };
 
@@ -88,7 +92,6 @@ export default function AdminReviewsPage() {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-3 justify-center mb-8">
           <button
             onClick={() => setFilter("pending")}
@@ -136,7 +139,7 @@ export default function AdminReviewsPage() {
                   <p className="text-lg">{"⭐".repeat(review.rating)}</p>
                 </div>
 
-                <p className="text-sm font-light text-[#7A6055] leading-relaxed italic mb-4">
+                <p className="text-sm font-light text-[#7A6055] leading-relaxed mb-4">
                   "{review.content}"
                 </p>
 
