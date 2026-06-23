@@ -140,15 +140,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    supabase
-      .from("reviews")
-      .select("*")
-      .eq("approved", true)
-      .order("created_at", { ascending: false })
-      .limit(6)
-      .then(({ data }) => {
-        if (data) setReviews(data);
-      });
+    fetch("/api/get-reviews")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.reviews && data.reviews.length > 0) {
+          setReviews(data.reviews);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
