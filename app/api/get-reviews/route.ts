@@ -18,11 +18,17 @@ export async function GET() {
       .limit(6);
 
     if (error) {
-      return NextResponse.json({ reviews: [], error: error.message });
+      return new Response(JSON.stringify({ reviews: [], error: error.message }), {
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
     }
 
-    return NextResponse.json({ reviews: data || [] });
+    return new Response(JSON.stringify({ reviews: data || [] }), {
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+    });
   } catch (err) {
-    return NextResponse.json({ reviews: [] });
+    return new Response(JSON.stringify({ reviews: [] }), {
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+    });
   }
 }
