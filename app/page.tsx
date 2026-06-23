@@ -140,15 +140,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/get-reviews")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("GET REVIEWS RESPONSE:", JSON.stringify(data));
-        if (data.reviews && data.reviews.length > 0) {
-          setReviews(data.reviews);
-        }
-      })
-      .catch((err) => console.log("FETCH ERROR:", err));
+    supabase
+      .from("reviews")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(6)
+      .then(({ data, error }) => {
+        if (data && data.length > 0) setReviews(data);
+      });
   }, []);
 
   useEffect(() => {
@@ -273,7 +272,7 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
                   🎁 Κάντο Δώρο
                 </Link>
                 <Link href={box.previewPath} className="block w-full py-3 bg-white text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center border border-[#C4A882]">
-                  👁️ Δες ένα δείγμα
+                  👁 Δες ένα δείγμα
                 </Link>
               </div>
             </div>
@@ -414,4 +413,3 @@ function Footer() {
     </footer>
   );
 }
-
