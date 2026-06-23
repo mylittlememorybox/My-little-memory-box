@@ -143,7 +143,7 @@ export default function HomePage() {
     supabase
       .from("reviews")
       .select("*")
-      .is("approved", true)
+      .eq("approved", true)
       .order("created_at", { ascending: false })
       .limit(6)
       .then(({ data }) => {
@@ -413,6 +413,4 @@ function Footer() {
       </a>
     </footer>
   );
-}
-
 }
