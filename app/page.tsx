@@ -143,11 +143,12 @@ export default function HomePage() {
     fetch("/api/get-reviews")
       .then((res) => res.json())
       .then((data) => {
+        console.log("GET REVIEWS RESPONSE:", JSON.stringify(data));
         if (data.reviews && data.reviews.length > 0) {
           setReviews(data.reviews);
         }
       })
-      .catch(() => {});
+      .catch((err) => console.log("FETCH ERROR:", err));
   }, []);
 
   useEffect(() => {
@@ -413,3 +414,4 @@ function Footer() {
     </footer>
   );
 }
+
