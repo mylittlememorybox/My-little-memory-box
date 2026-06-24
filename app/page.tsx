@@ -122,18 +122,20 @@ const TEMPLATE_NAMES: Record<string, string> = {
   "travel": "Travel Memory Box ✈️",
 };
 
+const FALLBACK_REVIEWS = [
+  {
+    id: "fallback-1",
+    name: "Μαρία Κ",
+    template_id: "travel",
+    rating: 5,
+    content: "Αγόρασα το Travel Memory Box για να μαζέψω όλες τις αναμνήσεις από τα ταξίδια μου και ειλικρινά δεν περίμενα να είναι τόσο ωραίο! Κάθε ταξίδι έχει τη δική του σελίδα — και οι passport σφραγίδες για κάθε προορισμό είναι απλά τέλειες! 🗺️✈️",
+  }
+];
+
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([
-    {
-      id: "test-1",
-      name: "Μαρία Κ",
-      template_id: "travel",
-      rating: 5,
-      content: "Αγόρασα το Travel Memory Box για να μαζέψω όλες τις αναμνήσεις από τα ταξίδια μου και ειλικρινά δεν περίμενα να είναι τόσο ωραίο! Κάθε ταξίδι έχει τη δική του σελίδα — και οι passport σφραγίδες για κάθε προορισμό είναι απλά τέλειες! 🗺️✈️",
-    }
-  ]);
+  const [reviews, setReviews] = useState<any[]>(FALLBACK_REVIEWS);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -145,6 +147,19 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/get-reviews")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.reviews && data.reviews.length > 0) {
+          setReviews(data.reviews);
+        }
+      })
+      .catch(() => {
+        setReviews(FALLBACK_REVIEWS);
+      });
   }, []);
 
   useEffect(() => {
@@ -296,7 +311,7 @@ function ReviewsSection({ reviews }: { reviews: any[] }) {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reviews.map((review) => (
+          {reviews.slice(0, 3).map((review) => (
             <div key={review.id} className="bg-white rounded-3xl shadow-sm p-6 reveal">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-normal text-[#5C3820]">{review.name}</p>
@@ -312,6 +327,11 @@ function ReviewsSection({ reviews }: { reviews: any[] }) {
               </p>
             </div>
           ))}
+        </div>
+        <div className="text-center mt-10">
+          <Link href="/reviews" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
+            Δες όλες τις αξιολογήσεις →
+          </Link>
         </div>
       </div>
     </section>
