@@ -125,7 +125,15 @@ const TEMPLATE_NAMES: Record<string, string> = {
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([
+    {
+      id: "test-1",
+      name: "Μαρία Κ",
+      template_id: "travel",
+      rating: 5,
+      content: "Αγόρασα το Travel Memory Box για να μαζέψω όλες τις αναμνήσεις από τα ταξίδια μου και ειλικρινά δεν περίμενα να είναι τόσο ωραίο! Κάθε ταξίδι έχει τη δική του σελίδα — και οι passport σφραγίδες για κάθε προορισμό είναι απλά τέλειες! 🗺️✈️",
+    }
+  ]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -137,17 +145,6 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
-  }, []);
-
-  useEffect(() => {
-    supabase
-      .from("reviews")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(6)
-      .then(({ data, error }) => {
-        if (data && data.length > 0) setReviews(data);
-      });
   }, []);
 
   useEffect(() => {
@@ -272,7 +269,7 @@ function TemplatesSection({ templates }: { templates: Template[] }) {
                   🎁 Κάντο Δώρο
                 </Link>
                 <Link href={box.previewPath} className="block w-full py-3 bg-white text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 hover:-translate-y-0.5 transition-all text-center border border-[#C4A882]">
-                  👁 Δες ένα δείγμα
+                  👁️ Δες ένα δείγμα
                 </Link>
               </div>
             </div>
