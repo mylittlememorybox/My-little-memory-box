@@ -151,15 +151,14 @@ export default function HomePage() {
 
   useEffect(() => {
     fetch("/api/get-reviews")
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => res.text())
+      .then((text) => {
+        const data = JSON.parse(text);
         if (data.reviews && data.reviews.length > 0) {
           setReviews(data.reviews);
         }
       })
-      .catch(() => {
-        setReviews(FALLBACK_REVIEWS);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
