@@ -122,9 +122,9 @@ const TEMPLATE_NAMES: Record<string, string> = {
   "travel": "Travel Memory Box ✈️",
 };
 
-const FALLBACK_REVIEWS = [
+const STATIC_REVIEWS = [
   {
-    id: "fallback-1",
+    id: "r1",
     name: "Μαρία Κ",
     template_id: "travel",
     rating: 5,
@@ -135,7 +135,6 @@ const FALLBACK_REVIEWS = [
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>(FALLBACK_REVIEWS);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -147,24 +146,6 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/get-reviews")
-      .then((res) => res.text())
-      .then((text) => {
-        try {
-          const data = JSON.parse(text);
-          if (data.reviews && data.reviews.length > 0) {
-            setReviews(data.reviews);
-          }
-        } catch (e) {
-          // μένει το fallback
-        }
-      })
-      .catch(() => {
-        // μένει το fallback
-      });
   }, []);
 
   useEffect(() => {
@@ -188,7 +169,7 @@ export default function HomePage() {
       <Nav scrolled={scrolled} user={user} />
       <HeroSection />
       <TemplatesSection templates={TEMPLATES} />
-      <ReviewsSection reviews={reviews} />
+      <ReviewsSection reviews={STATIC_REVIEWS} />
       <HowItWorksSection />
       <FAQSection />
       <Footer />
