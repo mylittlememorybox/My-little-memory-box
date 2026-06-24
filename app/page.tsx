@@ -159,11 +159,11 @@ export default function HomePage() {
             setReviews(data.reviews);
           }
         } catch (e) {
-          // parsing error — μένει το fallback
+          // μένει το fallback
         }
       })
       .catch(() => {
-        // network error — μένει το fallback
+        // μένει το fallback
       });
   }, []);
 
@@ -334,7 +334,7 @@ function ReviewsSection({ reviews }: { reviews: any[] }) {
           ))}
         </div>
         <div className="text-center mt-10">
-          <Link href="/reviews" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
+          <Link href="/all-reviews" className="inline-block px-10 py-4 border-2 border-[#C49090] text-[#8B5E3C] rounded-full font-light uppercase tracking-widest text-xs hover:bg-[rgba(196,144,144,0.08)] transition-all">
             Δες όλες τις αξιολογήσεις →
           </Link>
         </div>
