@@ -153,12 +153,18 @@ export default function HomePage() {
     fetch("/api/get-reviews")
       .then((res) => res.text())
       .then((text) => {
-        const data = JSON.parse(text);
-        if (data.reviews && data.reviews.length > 0) {
-          setReviews(data.reviews);
+        try {
+          const data = JSON.parse(text);
+          if (data.reviews && data.reviews.length > 0) {
+            setReviews(data.reviews);
+          }
+        } catch (e) {
+          // parsing error — μένει το fallback
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // network error — μένει το fallback
+      });
   }, []);
 
   useEffect(() => {
