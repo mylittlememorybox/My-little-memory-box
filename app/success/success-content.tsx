@@ -15,6 +15,7 @@ export default function SuccessContent() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [giftLink, setGiftLink] = useState<string | null>(null);
   const [loadingBox, setLoadingBox] = useState(false);
+  const [giftToken, setGiftToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionId && type === "gift") {
@@ -61,6 +62,7 @@ export default function SuccessContent() {
       if (response.ok) {
         setQrCodeUrl(data.qrCodeDataUrl);
         setGiftLink(data.giftUrl);
+        setGiftToken(data.giftToken);
         setSent(true);
       } else {
         alert("Σφάλμα κατά την αποστολή. Δοκιμάστε ξανά.");
@@ -140,7 +142,6 @@ export default function SuccessContent() {
                   Βάλτε το email του παραλήπτη για να λάβει το QR code του δώρου.
                 </p>
                 <div className="bg-white rounded-3xl p-8 shadow-lg">
-
                   {loadingBox && (
                     <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-4 text-center">
                       <p className="text-sm text-[#8B5E3C] font-light">
@@ -148,7 +149,6 @@ export default function SuccessContent() {
                       </p>
                     </div>
                   )}
-
                   {!loadingBox && memoryBoxId && (
                     <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-4 text-center">
                       <p className="text-sm text-[#8B5E3C] font-light">
@@ -156,7 +156,6 @@ export default function SuccessContent() {
                       </p>
                     </div>
                   )}
-
                   <input
                     type="email"
                     value={email}
@@ -177,7 +176,7 @@ export default function SuccessContent() {
               <>
                 <div className="text-6xl mb-4">✅</div>
                 <p className="text-[#B09880] font-light mb-8 leading-relaxed">
-                  Στείλαμε το QR code στον παραλήπτη! Μπορείτε επίσης να το κατεβάσετε ή να αντιγράψετε το link για να το στείλετε μέσω Viber, WhatsApp κλπ.
+                  Στείλαμε το QR code στον παραλήπτη! Μπορείτε επίσης να κατεβάσετε την Gift Card για να τη στείλετε μέσω Viber, WhatsApp κλπ.
                 </p>
 
                 {qrCodeUrl && (
@@ -191,11 +190,23 @@ export default function SuccessContent() {
                       className="w-48 h-48 mx-auto mb-6"
                     />
                     <div className="space-y-3">
+
+                      {/* Gift Card button */}
+                      {giftToken && (
+                        <Link
+                          href={`/gift-card/${giftToken}`}
+                          target="_blank"
+                          className="block w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all text-center"
+                        >
+                          🎀 Κατέβασε την Gift Card
+                        </Link>
+                      )}
+
                       <button
                         onClick={handleDownloadQR}
-                        className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+                        className="w-full py-4 bg-[#F2E8DE] text-[#8B5E3C] rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
                       >
-                        📥 Κατέβασε το QR
+                        📥 Κατέβασε μόνο το QR
                       </button>
                       <button
                         onClick={handleCopyLink}
@@ -205,7 +216,7 @@ export default function SuccessContent() {
                       </button>
                     </div>
                     <p className="text-xs text-[#B09880] mt-4 font-light">
-                      Στείλτε το QR ή το link μέσω Viber, WhatsApp, SMS ή όπου θέλετε!
+                      Στείλτε την Gift Card ή το link μέσω Viber, WhatsApp, SMS ή όπου θέλετε!
                     </p>
                   </div>
                 )}
