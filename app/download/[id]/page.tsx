@@ -15,8 +15,6 @@ const STAMP_COLORS = ["#1A4A7A", "#2E6B9E", "#1A6B5A", "#7A1A4A", "#4A1A7A", "#7
 export default function DownloadPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [data, setData] = useState<Record<string, Record<string, string>>>({});
   const [photos, setPhotos] = useState<Record<string, Record<string, string>>>({});
   const [templateId, setTemplateId] = useState("");
@@ -53,45 +51,8 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
     setLoading(false);
   };
 
-  const handleDownload = async () => {
-    if (!contentRef.current) return;
-    setGenerating(true);
-    setProgress(0);
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const jspdf = await import("jspdf");
-      const jsPDF = jspdf.jsPDF || jspdf.default;
-      const pages = contentRef.current.querySelectorAll(".pdf-page");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const totalPages = pages.length;
-      for (let i = 0; i < totalPages; i++) {
-        setProgress(Math.round((i / totalPages) * 100));
-        const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: templateId === "travel" ? "#F8F4EE" : "#F9F2EC",
-          logging: false,
-          imageTimeout: 15000,
-        });
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      }
-      setProgress(100);
-      const fileName = templateId === "first-years" ? "ta-prota-xronia" :
-                       templateId === "me-and-you" ? "ego-kai-esy" :
-                       templateId === "our-wedding" ? "o-gamos-mas" : "travel-memory-box";
-      pdf.save(`memory-box-${fileName}.pdf`);
-    } catch (error) {
-      console.error("PDF error:", error);
-      alert("Σφάλμα κατά τη δημιουργία PDF. Δοκιμάστε ξανά.");
-    } finally {
-      setGenerating(false);
-      setProgress(0);
-    }
+  const handleDownload = () => {
+    window.print();
   };
 
   const get = (page: string, field: string) => data[page]?.[field] || "";
@@ -182,6 +143,25 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-content, .print-content * {
+            visibility: visible;
+          }
+          .print-content {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+          }
+          .pdf-page {
+            page-break-after: always;
+          }
+        }
+      `}</style>
+
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/"><img src="/logo.png" alt="Logo" className="w-16 h-auto" /></Link>
@@ -204,29 +184,19 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
 
         <button
           onClick={handleDownload}
-          disabled={generating}
-          className="inline-block px-10 py-4 text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50 mb-4"
+          className="inline-block px-10 py-4 text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all mb-4"
           style={{ backgroundColor: accentColor }}
         >
-          {generating ? `Δημιουργία PDF... ${progress}%` : "⬇️ Κατέβασε το PDF"}
+          ⬇️ Αποθήκευση ως PDF
         </button>
 
-        {generating && (
-          <div className="w-full max-w-xs mx-auto rounded-full h-2 mb-8" style={{ backgroundColor: lightColor }}>
-            <div
-              className="h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, backgroundColor: accentColor }}
-            />
-          </div>
-        )}
-
         <p className="text-xs font-light" style={{ color: templateId === "travel" ? "#A8C4E0" : "#B09880" }}>
-          Η δημιουργία PDF μπορεί να πάρει 1-2 λεπτά ανάλογα με τις φωτογραφίες
+          Στο παράθυρο που θα ανοίξει, επιλέξτε "Αποθήκευση ως PDF"
         </p>
       </div>
 
-      {/* PDF Content - hidden */}
-      <div ref={contentRef} style={{ position: "absolute", left: "-9999px", top: 0 }}>
+      {/* PDF Content */}
+      <div ref={contentRef} className="print-content" style={{ position: "absolute", left: "-9999px", top: 0 }}>
 
         {/* COVER */}
         <PageWrapper>
