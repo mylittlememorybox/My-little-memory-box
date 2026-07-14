@@ -59,7 +59,8 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
     setProgress(0);
     try {
       const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
+      const jspdf = await import("jspdf");
+      const jsPDF = jspdf.jsPDF || jspdf.default;
       const pages = contentRef.current.querySelectorAll(".pdf-page");
       const pdf = new jsPDF("p", "mm", "a4");
       const totalPages = pages.length;
@@ -242,12 +243,6 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
               </span>
               <div style={{ width: "20mm", height: "1px", backgroundColor: accentColor }} />
             </div>
-            {templateId === "travel" && (
-              <div>
-                <p style={{ fontSize: "18pt", color: accentColor, fontStyle: "italic" }}>{get("cover", "name")}</p>
-                <p style={{ fontSize: "11pt", color: "#A8C4E0", marginTop: "2mm" }}>{get("cover", "year")}</p>
-              </div>
-            )}
             {templateId === "first-years" && (
               <p style={{ fontSize: "20pt", color: accentColor, fontStyle: "italic" }}>{get("cover", "child_name")}</p>
             )}
@@ -262,6 +257,12 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
                 <p style={{ fontSize: "18pt", color: accentColor, fontStyle: "italic" }}>{get("cover", "groom_name")} & {get("cover", "bride_name")}</p>
                 <p style={{ fontSize: "11pt", color: "#B09880", marginTop: "2mm" }}>{get("cover", "wedding_date")}</p>
                 <p style={{ fontSize: "11pt", color: "#B09880" }}>{get("cover", "wedding_location")}</p>
+              </div>
+            )}
+            {templateId === "travel" && (
+              <div>
+                <p style={{ fontSize: "18pt", color: accentColor, fontStyle: "italic" }}>{get("cover", "name")}</p>
+                <p style={{ fontSize: "11pt", color: "#A8C4E0", marginTop: "2mm" }}>{get("cover", "year")}</p>
               </div>
             )}
             {photo("cover", "cover_photo") && (
