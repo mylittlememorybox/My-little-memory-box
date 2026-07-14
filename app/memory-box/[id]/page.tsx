@@ -84,6 +84,8 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
   const [data, setData] = useState<Record<string, Record<string, string>>>({});
   const [photos, setPhotos] = useState<Record<string, Record<string, string>>>({});
   const [flipping, setFlipping] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadData();
@@ -165,6 +167,29 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         newPhotos[pageKey][photoKey] = photoUrl;
         return newPhotos;
       });
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!pageRef.current) return;
+    setDownloading(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(pageRef.current, {
+        scale: 2,
+        backgroundColor: "#F9F2EC",
+        useCORS: true,
+        allowTaint: true,
+      });
+      const link = document.createElement("a");
+      link.download = `memory-box-${PAGES[currentPage].key}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Σφάλμα κατά το download. Δοκιμάστε ξανά.");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -529,6 +554,7 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-[#8B5E3C] flex flex-col items-center justify-center p-4">
       <div
+        ref={pageRef}
         className={`relative bg-[#F9F2EC] rounded-lg shadow-2xl w-full max-w-md transition-all duration-400 ${
           flipping ? "opacity-0 scale-95" : "opacity-100 scale-100"
         }`}
@@ -572,9 +598,18 @@ export default function MemoryBookPage({ params }: { params: { id: string } }) {
         </button>
       </div>
 
+      {/* Download button */}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="mt-4 px-8 py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 transition-all disabled:opacity-50"
+      >
+        {downloading ? "⏳ Κατέβασμα..." : "📥 Κατέβασε αυτή τη σελίδα"}
+      </button>
+
       <Link
         href="/dashboard"
-        className="mt-6 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
+        className="mt-4 text-white text-xs font-light hover:opacity-70 transition-opacity tracking-widest uppercase"
       >
         ← Επιστροφή στο Dashboard
       </Link>
