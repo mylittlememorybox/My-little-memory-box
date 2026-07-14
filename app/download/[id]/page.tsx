@@ -63,7 +63,7 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
   const lightColor = templateId === "travel" ? "rgba(26,74,122,0.1)" : "#F2E8DE";
 
   const PageWrapper = ({ children, bg }: { children: React.ReactNode; bg?: string }) => (
-    <div className="pdf-page" style={{ backgroundColor: bg || bgColor, width: "210mm", minHeight: "297mm", padding: "20mm", fontFamily: "Georgia, serif", position: "relative" }}>
+    <div className="pdf-page" style={{ backgroundColor: bg || bgColor, width: "210mm", minHeight: "297mm", padding: "20mm", fontFamily: "Georgia, serif", position: "relative", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
       <div style={{ textAlign: "center", marginBottom: "8mm", borderBottom: `1px solid rgba(${templateId === "travel" ? "26,74,122" : "196,168,130"},0.3)`, paddingBottom: "4mm" }}>
         <img src="/logo.png" alt="Logo" style={{ width: "35mm", height: "auto", margin: "0 auto" }} crossOrigin="anonymous" />
       </div>
@@ -158,11 +158,12 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
           }
           .pdf-page {
             page-break-after: always;
+            box-shadow: none !important;
           }
         }
       `}</style>
 
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white shadow-sm sticky top-0 z-50 no-print">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/"><img src="/logo.png" alt="Logo" className="w-16 h-auto" /></Link>
           <Link href="/dashboard" className="text-xs uppercase tracking-widest" style={{ color: accentColor }}>← Dashboard</Link>
@@ -195,8 +196,8 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
         </p>
       </div>
 
-      {/* PDF Content */}
-      <div ref={contentRef} className="print-content" style={{ position: "absolute", left: "-9999px", top: 0 }}>
+      {/* PDF Content - visible preview */}
+      <div ref={contentRef} className="print-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px", paddingBottom: "40px", overflowX: "auto" }}>
 
         {/* COVER */}
         <PageWrapper>
