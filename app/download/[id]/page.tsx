@@ -59,16 +59,19 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
     setProgress(0);
     try {
       const html2canvas = (await import("html2canvas")).default;
-      const jsPDF = (await import("jspdf")).default;
+      const { jsPDF } = await import("jspdf");
       const pages = contentRef.current.querySelectorAll(".pdf-page");
       const pdf = new jsPDF("p", "mm", "a4");
       const totalPages = pages.length;
       for (let i = 0; i < totalPages; i++) {
         setProgress(Math.round((i / totalPages) * 100));
         const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 2, useCORS: true, allowTaint: true,
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
           backgroundColor: templateId === "travel" ? "#F8F4EE" : "#F9F2EC",
-          logging: false, imageTimeout: 15000,
+          logging: false,
+          imageTimeout: 15000,
         });
         const imgData = canvas.toDataURL("image/jpeg", 0.95);
         const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -100,7 +103,7 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
   const PageWrapper = ({ children, bg }: { children: React.ReactNode; bg?: string }) => (
     <div className="pdf-page" style={{ backgroundColor: bg || bgColor, width: "210mm", minHeight: "297mm", padding: "20mm", fontFamily: "Georgia, serif", position: "relative" }}>
       <div style={{ textAlign: "center", marginBottom: "8mm", borderBottom: `1px solid rgba(${templateId === "travel" ? "26,74,122" : "196,168,130"},0.3)`, paddingBottom: "4mm" }}>
-        <img src="/logo.png" alt="Logo" style={{ width: "35mm", height: "auto", margin: "0 auto" }} />
+        <img src="/logo.png" alt="Logo" style={{ width: "35mm", height: "auto", margin: "0 auto" }} crossOrigin="anonymous" />
       </div>
       {children}
       <div style={{ position: "absolute", bottom: "8mm", left: "20mm", right: "20mm", textAlign: "center", borderTop: `1px solid rgba(${templateId === "travel" ? "26,74,122" : "196,168,130"},0.3)`, paddingTop: "3mm" }}>
@@ -198,7 +201,9 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
           Κατεβάστε το Memory Box σας σε μορφή PDF
         </p>
 
-        <button onClick={handleDownload} disabled={generating}
+        <button
+          onClick={handleDownload}
+          disabled={generating}
           className="inline-block px-10 py-4 text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50 mb-4"
           style={{ backgroundColor: accentColor }}
         >
@@ -207,7 +212,10 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
 
         {generating && (
           <div className="w-full max-w-xs mx-auto rounded-full h-2 mb-8" style={{ backgroundColor: lightColor }}>
-            <div className="h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: accentColor }} />
+            <div
+              className="h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, backgroundColor: accentColor }}
+            />
           </div>
         )}
 
@@ -216,7 +224,7 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
         </p>
       </div>
 
-      {/* PDF Content */}
+      {/* PDF Content - hidden */}
       <div ref={contentRef} style={{ position: "absolute", left: "-9999px", top: 0 }}>
 
         {/* COVER */}
@@ -238,15 +246,6 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
               <div>
                 <p style={{ fontSize: "18pt", color: accentColor, fontStyle: "italic" }}>{get("cover", "name")}</p>
                 <p style={{ fontSize: "11pt", color: "#A8C4E0", marginTop: "2mm" }}>{get("cover", "year")}</p>
-                <div style={{ display: "flex", gap: "4mm", justifyContent: "center", marginTop: "8mm", opacity: 0.6 }}>
-                  {[1, 2, 3].map((i) => {
-                    const tripData = data[`trip_${i}`];
-                    if (!tripData?.country) return null;
-                    return (
-                      <PassportStampPDF key={i} country={tripData.country} city={tripData.city || ""} date={tripData.date || ""} color={STAMP_COLORS[i - 1]} />
-                    );
-                  })}
-                </div>
               </div>
             )}
             {templateId === "first-years" && (
@@ -274,7 +273,7 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
           </div>
         </PageWrapper>
 
-        {/* TRAVEL PAGES */}
+        {/* TRAVEL */}
         {templateId === "travel" && (
           <>
             <PageWrapper>
@@ -285,7 +284,6 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
               <Field label="Ονειρεμένος προορισμός" value={get("profile", "dream_destination")} />
               <Field label="Η φιλοσοφία μου" value={get("profile", "travel_motto")} />
             </PageWrapper>
-
             {Array.from({ length: 20 }, (_, i) => i + 1).map((tripNum) => {
               const pk = `trip_${tripNum}`;
               const country = get(pk, "country");
@@ -331,7 +329,6 @@ export default function DownloadPage({ params }: { params: { id: string } }) {
                 </PageWrapper>
               );
             })}
-
             <PageWrapper>
               <SectionTitle title="🌟 Ταξιδιωτικά Όνειρα" />
               <Field label="Bucket list" value={get("dreams", "bucket_list")} />
