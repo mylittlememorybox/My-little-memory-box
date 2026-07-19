@@ -18,41 +18,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
     }
 
+    if (!memoryBoxId) {
+      console.error("send-gift called without memoryBoxId — aborting to avoid corrupting wrong record");
+      return NextResponse.json(
+        { error: "memoryBoxId is required" },
+        { status: 400 }
+      );
+    }
+
     const giftToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
-    let finalMemoryBoxId = memoryBoxId;
+    const { data: updatedBox, error: updateError } = await supabase
+      .from("memory_boxes")
+      .update({
+        gift_token: giftToken,
+        gift_email: email,
+        gift_expires_at: expiryDate.toISOString(),
+        is_gift: true,
+      })
+      .eq("id", memoryBoxId)
+      .select()
+      .single();
 
-    if (!finalMemoryBoxId) {
-      const { data: latestBox } = await supabase
-        .from("memory_boxes")
-        .select("id")
-        .is("gift_token", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (latestBox) {
-        finalMemoryBoxId = latestBox.id;
-      }
-    }
-
-    if (finalMemoryBoxId) {
-      const { error: updateError } = await supabase
-        .from("memory_boxes")
-        .update({
-          gift_token: giftToken,
-          gift_email: email,
-          gift_expires_at: expiryDate.toISOString(),
-          is_gift: true,
-        })
-        .eq("id", finalMemoryBoxId);
-
-      if (updateError) {
-        console.error("Update error:", updateError);
-      }
+    if (updateError || !updatedBox) {
+      console.error("Update error:", updateError);
+      return NextResponse.json(
+        { error: "Failed to update memory box with gift details" },
+        { status: 500 }
+      );
     }
 
     const giftUrl = `https://www.mylittlememorybox.gr/gift/${giftToken}`;
