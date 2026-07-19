@@ -16,15 +16,21 @@ export default function SuccessContent() {
   const [giftLink, setGiftLink] = useState<string | null>(null);
   const [loadingBox, setLoadingBox] = useState(false);
   const [giftToken, setGiftToken] = useState<string | null>(null);
+  // ΝΕΟ: παρακολουθούμε αν το create-memory-box απέτυχε, ώστε να μπλοκάρουμε την αποστολή
+  const [boxError, setBoxError] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionId && type === "gift") {
       createMemoryBox();
+    } else if (type === "gift" && !sessionId) {
+      // ΝΕΟ: αν λείπει το session_id εντελώς, δεν προχωράμε καθόλου
+      setBoxError("Λείπει το αναγνωριστικό πληρωμής (session_id). Ανανεώστε τη σελίδα ή επικοινωνήστε μαζί μας.");
     }
   }, [sessionId, type]);
 
   const createMemoryBox = async () => {
     setLoadingBox(true);
+    setBoxError(null);
     try {
       const response = await fetch("/api/create-memory-box", {
         method: "POST",
@@ -32,11 +38,26 @@ export default function SuccessContent() {
         body: JSON.stringify({ sessionId }),
       });
       const data = await response.json();
-      if (data.memoryBoxId) {
-        setMemoryBoxId(data.memoryBoxId);
+
+      // ΝΕΟ: αυστηρός έλεγχος — πρέπει να έχουμε ΚΑΙ response.ok ΚΑΙ έγκυρο memoryBoxId.
+      // Πριν, ένα αποτυχημένο request περνούσε απαρατήρητο και το memoryBoxId έμενε null,
+      // πράγμα που άφηνε ανοιχτό το ενδεχόμενο λάθος memory box να σταλεί ως δώρο.
+      if (!response.ok || !data.memoryBoxId) {
+        console.error("create-memory-box failed:", data);
+        setBoxError(
+          "Δεν καταφέραμε να ετοιμάσουμε το Memory Box σας. Μην στείλετε ακόμα το δώρο — ανανεώστε τη σελίδα ή επικοινωνήστε μαζί μας στο info@mylittlememorybox.gr"
+        );
+        setMemoryBoxId(null);
+        return;
       }
+
+      setMemoryBoxId(data.memoryBoxId);
     } catch (error) {
       console.error("Error creating memory box:", error);
+      setBoxError(
+        "Παρουσιάστηκε σφάλμα κατά την προετοιμασία του Memory Box. Ανανεώστε τη σελίδα ή επικοινωνήστε μαζί μας στο info@mylittlememorybox.gr"
+      );
+      setMemoryBoxId(null);
     } finally {
       setLoadingBox(false);
     }
@@ -49,6 +70,14 @@ export default function SuccessContent() {
     }
     if (loadingBox) {
       alert("Παρακαλώ περιμένετε να φορτώσει το Memory Box...");
+      return;
+    }
+    // ΝΕΟ: σκληρό μπλοκάρισμα — χωρίς έγκυρο memoryBoxId δεν στέλνουμε ΤΙΠΟΤΑ.
+    // Αυτό είναι το τελευταίο σημείο ελέγχου πριν φύγει το αίτημα.
+    if (!memoryBoxId) {
+      alert(
+        "Δεν είναι δυνατή η αποστολή γιατί το Memory Box δεν έχει ετοιμαστεί σωστά. Ανανεώστε τη σελίδα ή επικοινωνήστε μαζί μας στο info@mylittlememorybox.gr — μην ξαναδοκιμάσετε χωρίς αυτό, ώστε να μην σταλεί λάθος δώρο."
+      );
       return;
     }
     setLoading(true);
@@ -65,7 +94,8 @@ export default function SuccessContent() {
         setGiftToken(data.giftToken);
         setSent(true);
       } else {
-        alert("Σφάλμα κατά την αποστολή. Δοκιμάστε ξανά.");
+        console.error("send-gift failed:", data);
+        alert("Σφάλμα κατά την αποστολή. Δοκιμάστε ξανά ή επικοινωνήστε μαζί μας.");
       }
     } catch (error) {
       alert("Σφάλμα κατά την αποστολή. Δοκιμάστε ξανά.");
@@ -156,6 +186,20 @@ export default function SuccessContent() {
                       </p>
                     </div>
                   )}
+                  {/* ΝΕΟ: εμφανές μήνυμα σφάλματος αν κάτι πήγε στραβά */}
+                  {!loadingBox && boxError && (
+                    <div className="bg-[#FBEAEA] border border-[#E0A0A0] rounded-2xl p-4 mb-4 text-center">
+                      <p className="text-sm text-[#A03A3A] font-light">
+                        ⚠️ {boxError}
+                      </p>
+                      <button
+                        onClick={createMemoryBox}
+                        className="mt-3 text-xs uppercase tracking-wider text-[#8B5E3C] underline"
+                      >
+                        Δοκιμάστε ξανά
+                      </button>
+                    </div>
+                  )}
                   <input
                     type="email"
                     value={email}
@@ -165,10 +209,17 @@ export default function SuccessContent() {
                   />
                   <button
                     onClick={handleSendGift}
-                    disabled={loading || loadingBox}
+                    // ΝΕΟ: το κουμπί είναι απενεργοποιημένο αν δεν υπάρχει έγκυρο memoryBoxId
+                    disabled={loading || loadingBox || !memoryBoxId}
                     className="w-full py-4 bg-[#C47878] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                   >
-                    {loading ? "Αποστολή..." : loadingBox ? "⏳ Φόρτωση..." : "🎁 Αποστολή QR code"}
+                    {loading
+                      ? "Αποστολή..."
+                      : loadingBox
+                      ? "⏳ Φόρτωση..."
+                      : !memoryBoxId
+                      ? "⚠️ Μη διαθέσιμο"
+                      : "🎁 Αποστολή QR code"}
                   </button>
                 </div>
               </>
