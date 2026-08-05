@@ -24,6 +24,7 @@ function LoginContent() {
   const [error, setError] = useState("");
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [checkingUser, setCheckingUser] = useState(true);
+  const [claimingGift, setClaimingGift] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -31,6 +32,22 @@ function LoginContent() {
       setCheckingUser(false);
     });
   }, []);
+
+  const claimGiftIfNeeded = async (userId: string) => {
+    if (!giftToken) return;
+    try {
+      await fetch("/api/claim-gift", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          giftToken,
+          userId,
+        }),
+      });
+    } catch (err) {
+      console.error("claim-gift error:", err);
+    }
+  };
 
   const handleSubmit = async () => {
     setError("");
@@ -54,14 +71,7 @@ function LoginContent() {
       }
 
       if (giftToken && authData.user) {
-        await fetch("/api/claim-gift", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            giftToken,
-            userId: authData.user.id,
-          }),
-        });
+        await claimGiftIfNeeded(authData.user.id);
       }
 
       router.push("/dashboard");
@@ -70,6 +80,15 @@ function LoginContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoToDashboard = async () => {
+    if (giftToken && loggedInUser) {
+      setClaimingGift(true);
+      await claimGiftIfNeeded(loggedInUser.id);
+      setClaimingGift(false);
+    }
+    router.push("/dashboard");
   };
 
   const handleLogout = async () => {
@@ -112,10 +131,11 @@ function LoginContent() {
             </p>
             <div className="space-y-3 max-w-xs mx-auto">
               <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all"
+                onClick={handleGoToDashboard}
+                disabled={claimingGift}
+                className="w-full py-4 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-sm hover:opacity-90 transition-all disabled:opacity-50"
               >
-                Πηγαίνετε στο Dashboard
+                {claimingGift ? "Παραλαβή δώρου..." : "Πηγαίνετε στο Dashboard"}
               </button>
               <button
                 onClick={handleLogout}
