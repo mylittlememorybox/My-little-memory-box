@@ -15,6 +15,7 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [templateId, setTemplateId] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -67,8 +68,9 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError("");
     try {
-      await fetch("/api/send-story-request", {
+      const res = await fetch("/api/send-story-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,10 +80,19 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
           memoryBoxId: params.id,
         }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setSaveError("Κάτι πήγε στραβά. Δοκιμάστε ξανά.");
+        return;
+      }
+
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error("Error:", error);
+      setSaveError("Κάτι πήγε στραβά. Δοκιμάστε ξανά.");
     } finally {
       setSaving(false);
     }
@@ -216,6 +227,14 @@ export default function StoryDetailsPage({ params }: { params: { id: string } })
             <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
               <p className="text-green-600 text-sm font-light text-center">
                 Αποθηκευτηκε και στειλαμε τα στοιχεια! ✓
+              </p>
+            </div>
+          )}
+
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+              <p className="text-red-600 text-sm font-light text-center">
+                {saveError}
               </p>
             </div>
           )}
