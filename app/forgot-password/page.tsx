@@ -23,7 +23,8 @@ export default function ForgotPasswordPage() {
       redirectTo: "https://mylittlememorybox.gr/reset-password",
     });
     if (resetError) {
-      setError("Σφάλμα. Δοκιμάστε ξανά.");
+      console.error("Reset password error:", resetError);
+      setError(resetError.message || "Σφάλμα. Δοκιμάστε ξανά.");
     } else {
       setSent(true);
     }
