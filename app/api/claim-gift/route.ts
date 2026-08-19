@@ -16,9 +16,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
+    // Παίρνουμε το πραγματικό email του παραλήπτη από το Supabase Auth
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+    if (userError || !userData?.user?.email) {
+      console.error("Error fetching user email:", userError);
+      return NextResponse.json({ error: "Could not resolve user email" }, { status: 500 });
+    }
+
+    const recipientEmail = userData.user.email;
+
     const { error } = await supabase
       .from("memory_boxes")
-      .update({ user_id: userId })
+      .update({ user_id: userId, gift_email: recipientEmail })
       .eq("gift_token", giftToken)
       .is("user_id", null);
 
