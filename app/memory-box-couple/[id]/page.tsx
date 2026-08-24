@@ -19,6 +19,12 @@ const PAGES = [
   { key: "hard_days", title: "Οι δύσκολες μέρες" },
   { key: "what_i_love", title: "Αυτό που αγαπώ σε σένα" },
   { key: "our_dreams", title: "Τα όνειρά μας" },
+  { key: "everyday_us", title: "Εμείς, στην καθημερινότητά μας" },
+  { key: "our_little_things", title: "Τα μικρά μας κολλήματα" },
+  { key: "plot_twists", title: "Τα μεγάλα μας plot twists" },
+  { key: "together_anywhere", title: "Όπου κι αν πάμε, μαζί" },
+  { key: "our_little_team", title: "Η δική μας μικρή ομάδα" },
+  { key: "future_chapter", title: "Το επόμενο κεφάλαιό μας" },
   { key: "letter", title: "Ένα γράμμα για σένα" },
 ];
 
@@ -440,6 +446,160 @@ export default function MemoryBookCouplePage({ params }: { params: { id: string 
                 <div key={item.key}>
                   <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
                   <F pk="our_dreams" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "everyday_us":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Εμείς, στην καθημερινότητά μας ☕</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <PhotoPlaceholder pageKey="everyday_us" photoKey="photo1" />
+              <PhotoPlaceholder pageKey="everyday_us" photoKey="photo2" />
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: "most_us_thing", label: "Το πιο «εμείς» πράγμα που κάνουμε κάθε μέρα", ml: true },
+                { key: "our_moment", label: "Η στιγμή της ημέρας που είναι μόνο δική μας", ml: true },
+                { key: "makes_my_day", label: "Αυτό που κάνεις και μου φτιάχνει τη μέρα χωρίς να το καταλαβαίνεις", ml: true },
+                { key: "most_common_text", label: "Το μήνυμα που στέλνουμε πιο συχνά ο ένας στον άλλον", ml: false },
+                { key: "funny_disagreement", label: "Η πιο αστεία καθημερινή μας διαφωνία", ml: true },
+                { key: "if_tv_show", label: "Αν η καθημερινότητά μας ήταν σειρά, θα λεγόταν", ml: false },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="everyday_us" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "our_little_things":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα μικρά μας κολλήματα 🫶</h2>
+            <PhotoPlaceholder pageKey="our_little_things" photoKey="photo1" />
+            <div className="space-y-4 mt-4">
+              {[
+                { key: "usual_order", label: "Η παραγγελία που ξέρουμε πλέον απ' έξω", ml: false },
+                { key: "one_more_episode", label: "Η σειρά που βλέπουμε «μόνο ένα επεισόδιο ακόμα»", ml: false },
+                { key: "mood_song", label: "Το τραγούδι που μας αλλάζει αμέσως τη διάθεση", ml: false },
+                { key: "our_phrase", label: "Η ατάκα που καταλαβαίνουμε μόνο εμείς", ml: false },
+                { key: "weird_habit", label: "Η πιο περίεργη κοινή μας συνήθεια", ml: true },
+                { key: "lazy_sunday", label: "Το ιδανικό μας lazy Sunday", ml: true },
+                { key: "never_stop", label: "Αυτό που λέμε ότι θα σταματήσουμε, αλλά δεν σταματάμε ποτέ", ml: true },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="our_little_things" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "plot_twists":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Τα μεγάλα μας plot twists ✨</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <PhotoPlaceholder pageKey="plot_twists" photoKey="photo1" />
+              <PhotoPlaceholder pageKey="plot_twists" photoKey="photo2" />
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: "got_serious", label: "Η στιγμή που καταλάβαμε ότι αυτό γίνεται σοβαρό", ml: true },
+                { key: "first_big_step", label: "Το πρώτο μεγάλο βήμα που κάναμε μαζί", ml: true },
+                { key: "closer_change", label: "Μια αλλαγή που μας έφερε ακόμη πιο κοντά", ml: true },
+                { key: "biggest_win", label: "Η μεγαλύτερη κοινή μας νίκη", ml: true },
+                { key: "overcome_phase", label: "Μια δύσκολη φάση που τελικά ξεπεράσαμε", ml: true },
+                { key: "next_chapter_expect", label: "Το επόμενο μεγάλο κεφάλαιο που περιμένουμε", ml: true },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="plot_twists" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "together_anywhere":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Όπου κι αν πάμε, μαζί 🌍</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <PhotoPlaceholder pageKey="together_anywhere" photoKey="photo1" />
+              <PhotoPlaceholder pageKey="together_anywhere" photoKey="photo2" />
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: "spontaneous_trip", label: "Το πιο αυθόρμητο ταξίδι ή απόδρασή μας", ml: true },
+                { key: "uncaptured_moment", label: "Η στιγμή που δεν αποτυπώθηκε σε καμία φωτογραφία", ml: true },
+                { key: "unexpected_best_story", label: "Το απρόοπτο που τελικά έγινε η καλύτερη ιστορία", ml: true },
+                { key: "remembered_taste", label: "Η γεύση που ακόμα θυμόμαστε", ml: false },
+                { key: "return_tomorrow", label: "Το μέρος στο οποίο θα επιστρέφαμε αύριο", ml: false },
+                { key: "who_plans", label: "Ποιος οργανώνει και ποιος απλώς ακολουθεί", ml: false },
+                { key: "next_destination", label: "Ο επόμενος προορισμός στη λίστα μας", ml: false },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="together_anywhere" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "our_little_team":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Η δική μας μικρή ομάδα 🏡</h2>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <PhotoPlaceholder pageKey="our_little_team" photoKey="photo1" />
+              <PhotoPlaceholder pageKey="our_little_team" photoKey="photo2" />
+            </div>
+            <div className="space-y-4">
+              {[
+                { key: "our_family", label: "Η δική μας οικογένεια αποτελείται από", ml: true },
+                { key: "everyone_role", label: "Ο καθένας στην ομάδα μας έχει τον ρόλο", ml: true },
+                { key: "chaotic_memory", label: "Η πιο χαοτική αλλά αγαπημένη μας ανάμνηση", ml: true },
+                { key: "our_tradition", label: "Μια παράδοση που δημιουργήσαμε μόνοι μας", ml: true },
+                { key: "feels_like_home", label: "Αυτό που κάνει το σπίτι μας να νιώθει «δικό μας»", ml: true },
+                { key: "most_said_phrase", label: "Η φράση που ακούγεται περισσότερο στο σπίτι μας", ml: false },
+                { key: "remember_this_phase", label: "Αυτό που θέλουμε να θυμόμαστε πάντα από αυτή τη φάση της ζωής μας", ml: true },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="our_little_team" fk={item.key} ph="..." ml={item.ml} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "future_chapter":
+        return (
+          <div className="h-full overflow-y-auto px-6 py-4">
+            <h2 className="text-xl font-script text-[#8B5E3C] mb-4 text-center">Το επόμενο κεφάλαιό μας 🚀</h2>
+            <PhotoPlaceholder pageKey="future_chapter" photoKey="photo1" />
+            <div className="space-y-4 mt-4">
+              {[
+                { key: "goal_next_year", label: "Ένας στόχος που θέλουμε να πετύχουμε μέσα στον επόμενο χρόνο", ml: false },
+                { key: "crazy_dream", label: "Ένα λίγο τρελό όνειρο που έχουμε μαζί", ml: true },
+                { key: "something_new", label: "Κάτι καινούργιο που θέλουμε να δοκιμάσουμε", ml: false },
+                { key: "trip_must_do", label: "Το ταξίδι που θέλουμε οπωσδήποτε να κάνουμε", ml: false },
+                { key: "five_years", label: "Πώς φανταζόμαστε τη ζωή μας σε πέντε χρόνια", ml: true },
+                { key: "first_step", label: "Το πρώτο βήμα που μπορούμε να κάνουμε από σήμερα", ml: true },
+                { key: "message_to_future_us", label: "Μήνυμα στους μελλοντικούς «εμάς»", ml: true },
+              ].map((item) => (
+                <div key={item.key}>
+                  <p className="text-xs text-[#8B5E3C] mb-1">{item.label}:</p>
+                  <F pk="future_chapter" fk={item.key} ph="..." ml={item.ml} />
                 </div>
               ))}
             </div>
