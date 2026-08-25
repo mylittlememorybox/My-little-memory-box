@@ -14,6 +14,8 @@ const supabase = createClient(
   }
 );
 
+// Backward-compatible fallback mapping (χρησιμοποιείται μόνο αν
+// το Stripe Product δεν έχει metadata.template_id ορισμένο)
 const PRICE_TO_TEMPLATE: Record<string, string> = {
   // Live prices
   "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
@@ -63,15 +65,36 @@ export async function POST(request: NextRequest) {
       const session = event.data.object;
       const customerEmail = session.customer_details?.email;
 
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-      const priceId = lineItems.data[0]?.price?.id;
+      // Expand το product ώστε να έχουμε πρόσβαση στο metadata του
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        expand: ["data.price.product"],
+      });
+      const price = lineItems.data[0]?.price;
+      const product = price?.product as any;
 
-      if (!customerEmail || !priceId) {
-        console.error("Missing email or priceId");
+      if (!customerEmail || !price) {
+        console.error("Missing email or price");
         return NextResponse.json({ error: "Missing data" }, { status: 400 });
       }
 
-      const templateId = PRICE_TO_TEMPLATE[priceId] || "first-years";
+      // 1) Προτεραιότητα στο metadata.template_id του Stripe Product
+      //    (ανθεκτικό σε νέα prices, coupons, discounts)
+      // 2) Fallback στο hardcoded mapping (παλιά prices)
+      // 3) Αν αποτύχουν και τα δύο -> ΔΕΝ κάνουμε σιωπηλό default,
+      //    log error ώστε να το προσέξουμε αμέσως
+      const templateId: string | null =
+        product?.metadata?.template_id || PRICE_TO_TEMPLATE[price.id] || null;
+
+      if (!templateId) {
+        console.error(
+          "UNKNOWN TEMPLATE — no mapping found. price:",
+          price.id,
+          "product:",
+          product?.id,
+          "session:",
+          session.id
+        );
+      }
 
       // Έλεγχος αν υπάρχει ήδη
       const { data: existingBox } = await supabase
@@ -94,7 +117,7 @@ export async function POST(request: NextRequest) {
         .from("memory_boxes")
         .insert({
           user_id: user?.id || null,
-          template_id: templateId,
+          template_id: templateId, // μπορεί να είναι null αν δεν βρέθηκε mapping — επίτηδες, για να το εντοπίσεις άμεσα
           status: "in_progress",
           story_status: "pending",
           gift_email: customerEmail,
@@ -108,7 +131,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Failed to create memory box" }, { status: 500 });
       }
 
-      console.log("Memory box created:", newBox?.id, "template:", templateId);
+      console.log("Memory box created:", newBox?.id, "template:", templateId ?? "UNKNOWN");
     }
 
     return NextResponse.json({ received: true });
