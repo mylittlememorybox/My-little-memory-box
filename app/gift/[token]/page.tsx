@@ -14,8 +14,6 @@ export default function GiftPage({ params }: { params: { token: string } }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [gift, setGift] = useState<any>(null);
-  const [expired, setExpired] = useState(false);
-  const [daysLeft, setDaysLeft] = useState(0);
 
   useEffect(() => {
     loadGift();
@@ -34,17 +32,9 @@ export default function GiftPage({ params }: { params: { token: string } }) {
       return;
     }
 
-    const expiryDate = new Date(data.gift_expires_at);
-    const now = new Date();
-    const diffTime = expiryDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 0) {
-      setExpired(true);
-    } else {
-      setDaysLeft(diffDays);
-    }
-
+    // ΔΙΟΡΘΩΣΗ: Δεν υπάρχει πλέον λήξη — το δώρο παραμένει έγκυρο
+    // μέχρι να χρησιμοποιηθεί (βλ. claim-gift/route.ts).
+    // Αφαιρέθηκε ο έλεγχος gift_expires_at και το countdown.
     setGift(data);
     setLoading(false);
   };
@@ -90,16 +80,18 @@ export default function GiftPage({ params }: { params: { token: string } }) {
     );
   }
 
-  if (expired) {
+  // Αν το δώρο έχει ήδη χρησιμοποιηθεί (user_id δεν είναι πια null),
+  // ενημερώνουμε καθαρά αντί να αφήνουμε τη φόρμα εγγραφής ανοιχτή.
+  if (gift.user_id) {
     return (
       <div className="min-h-screen bg-[#F9F2EC] flex items-center justify-center px-6">
         <div className="text-center">
-          <div className="text-6xl mb-4">⏰</div>
+          <div className="text-6xl mb-4">✅</div>
           <h1 className="text-2xl font-serif text-[#8B5E3C] mb-4">
-            Το δώρο έχει λήξει
+            Αυτό το δώρο έχει ήδη χρησιμοποιηθεί
           </h1>
           <p className="text-[#B09880] font-light mb-6">
-            Ο σύνδεσμος δώρου έχει λήξει. Επικοινωνήστε μαζί μας.
+            Ο σύνδεσμος αυτός έχει ήδη χρησιμοποιηθεί για τη δημιουργία λογαριασμού. Αν πιστεύετε ότι πρόκειται για λάθος, επικοινωνήστε μαζί μας.
           </p>
           <a href="mailto:info@mylittlememorybox.gr" className="text-[#C4A882] hover:text-[#8B5E3C]">
             info@mylittlememorybox.gr
@@ -140,11 +132,6 @@ export default function GiftPage({ params }: { params: { token: string } }) {
             Κάποιος σε σκέφτηκε και σου χάρισε ένα ξεχωριστό δώρο. Δημιούργησε τον λογαριασμό σου για να το ανοίξεις και να αρχίσεις να το συμπληρώνεις!
           </p>
 
-          <div className="bg-[#F2E8DE] rounded-2xl p-4 mb-6">
-            <p className="text-xs tracking-widest uppercase text-[#C4A882] mb-1">Το δώρο σου λήγει σε</p>
-            <p className="text-3xl font-serif text-[#8B5E3C]">{daysLeft} μέρες</p>
-          </div>
-
           <div className="space-y-3">
             <Link
               href={`/register?gift_token=${params.token}`}
@@ -160,10 +147,6 @@ export default function GiftPage({ params }: { params: { token: string } }) {
             </Link>
           </div>
         </div>
-
-        <p className="text-xs text-[#B09880] font-light">
-          Έχεις {daysLeft} μέρες για να ανοίξεις το δώρο σου
-        </p>
       </div>
 
       <footer className="bg-[#F2E8DE] py-8 px-6 text-center border-t border-[rgba(196,168,130,0.2)] mt-12">
