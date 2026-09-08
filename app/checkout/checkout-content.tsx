@@ -1,30 +1,20 @@
-"use client";
+""use client";
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 
 export default function CheckoutContent() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get("template") || "first-years";
   const isGift = searchParams.get("gift") === "true";
-  const [isTest, setIsTest] = useState(false);
-
-  useEffect(() => {
-    setIsTest(process.env.NEXT_PUBLIC_IS_TEST === "true");
-  }, []);
 
   const templates: Record<string, any> = {
     "first-years": {
       emoji: "🍼",
       name: "Τα Πρώτα Χρόνια",
       basePrice: "29.99",
-      normalLink: isTest
-        ? "https://buy.stripe.com/test_aFa6oHcIj4I2cwtcRaeZ201"
-        : "https://buy.stripe.com/aFa6oHcIj4I2cwtcRaeZ201",
-      giftLink: isTest
-        ? "https://buy.stripe.com/test_6oU4gz4bN0rMbsp6sMeZ204"
-        : "https://buy.stripe.com/6oU4gz4bN0rMbsp6sMeZ204",
+      normalLink: "https://buy.stripe.com/bJe8wP0ZBcau541cRaeZ20d",
+      giftLink: "https://buy.stripe.com/bJebJ137JgqK68518seZ20c",
       features: [
         "Ψηφιακό λεύκωμα με όλες τις σημαντικές στιγμές από τα πρώτα χρόνια του μωρού σας",
         "Προσωποποιημένο ebook παραμύθι με ήρωα το παιδί σας",
@@ -37,12 +27,8 @@ export default function CheckoutContent() {
       emoji: "💑",
       name: "Εγώ και Εσύ",
       basePrice: "29.99",
-      normalLink: isTest
-        ? "https://buy.stripe.com/test_3cI4gzdMn3DY0NL7wQeZ205"
-        : "https://buy.stripe.com/3cI4gzdMn3DY0NL7wQeZ205",
-      giftLink: isTest
-        ? "https://buy.stripe.com/test_bJe6oHbEf8Yi2VT4kEeZ206"
-        : "https://buy.stripe.com/bJe6oHbEf8Yi2VT4kEeZ206",
+      normalLink: "https://buy.stripe.com/00w5kD7nZ7UegMJbN6eZ20b",
+      giftLink: "https://buy.stripe.com/28EcN57nZ0rMeEB2cweZ20a",
       features: [
         "Η ιστορία της σχέσης μας μέσα σε ένα Memory Box γεμάτο αναμνήσεις και φωτογραφίες",
         "Για να μείνει το συναίσθημα μας ζωντανό μέσα στο χρόνο",
@@ -56,12 +42,8 @@ export default function CheckoutContent() {
       emoji: "💍",
       name: "Ο Γάμος Μας",
       basePrice: "24.99",
-      normalLink: isTest
-        ? "https://buy.stripe.com/test_14A6oH23F0rM9kh3gAeZ202"
-        : "https://buy.stripe.com/14A6oH23F0rM9kh3gAeZ202",
-      giftLink: isTest
-        ? "https://buy.stripe.com/test_eVq8wP5fRdeyeEB9EYeZ203"
-        : "https://buy.stripe.com/eVq8wP5fRdeyeEB9EYeZ203",
+      normalLink: "https://buy.stripe.com/bJe5kDdMn3DY2VT4kEeZ20g",
+      giftLink: "https://buy.stripe.com/dRm28r8s3caufIF7wQeZ20h",
       features: [
         "Ένα Memory Box γεμάτο με όλες τις στιγμές και τα συναισθήματα της πιο σημαντικής μέρας της ζωής σας",
         "Που δεν θέλετε να χαθούν μέσα στο χρόνο",
@@ -75,12 +57,8 @@ export default function CheckoutContent() {
       emoji: "✈️",
       name: "Travel Memory Box",
       basePrice: "29.99",
-      normalLink: isTest
-        ? "https://buy.stripe.com/test_4gM6oH6jVgqKcwt9EYeZ207"
-        : "https://buy.stripe.com/4gM6oH6jVgqKcwt9EYeZ207",
-      giftLink: isTest
-        ? "https://buy.stripe.com/test_14A28r37J6QabspdVeeZ208"
-        : "https://buy.stripe.com/14A28r37J6QabspdVeeZ208",
+      normalLink: "https://buy.stripe.com/7sYdR9aAb2zU5414kEeZ20f",
+      giftLink: "https://buy.stripe.com/eVq28rdMnb6qdAx5oIeZ20e",
       features: [
         "20 ταξίδια με πλήρη templates",
         "Passport style σφραγίδες για κάθε προορισμό",
@@ -122,12 +100,6 @@ export default function CheckoutContent() {
         {isGift && (
           <div className="bg-[#F2E8DE] rounded-full py-2 px-6 mb-8 text-center text-sm text-[#C4A882] font-light tracking-widest uppercase">
             🎁 Κάντο Δώρο
-          </div>
-        )}
-
-        {isTest && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-6 text-center">
-            <p className="text-yellow-600 text-xs font-light">⚠️ Test Mode — Χρησιμοποιήστε κάρτα 4242 4242 4242 4242</p>
           </div>
         )}
 
