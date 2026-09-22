@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { alertAdmin } from "@/lib/alert-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +18,10 @@ const supabase = createClient(
 // Backward-compatible fallback mapping (χρησιμοποιείται μόνο αν
 // το Stripe Product δεν έχει metadata.template_id ορισμένο)
 const PRICE_TO_TEMPLATE: Record<string, string> = {
-  // Live prices
-  "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
-  "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
-  "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
-  "price_1TcS0TI6cMM6olNfBCI2S324": "travel",
-  // Test prices
-  "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
-  "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
-  "price_1TVnMzI6cMM6olNfkwq1wvwO": "our-wedding",
+  "price_1UDPaRI6cMM6olNfCppcHZXp": "first-years",
+  "price_1UDPNTI6cMM6olNfnkLRRjJG": "me-and-you",
+  "price_1UDPhrI6cMM6olNfDRWbFEPL": "our-wedding",
+  "price_1UDPe2I6cMM6olNf3Xl19WO2": "travel",
 };
 
 export async function POST(request: NextRequest) {
@@ -74,6 +70,11 @@ export async function POST(request: NextRequest) {
 
       if (!customerEmail || !price) {
         console.error("Missing email or price");
+        await alertAdmin("Λείπει email ή price σε webhook αγορά", {
+          sessionId: session.id,
+          customerEmail: customerEmail || "MISSING",
+          hasPrice: !!price,
+        });
         return NextResponse.json({ error: "Missing data" }, { status: 400 });
       }
 
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
       //    (ανθεκτικό σε νέα prices, coupons, discounts)
       // 2) Fallback στο hardcoded mapping (παλιά prices)
       // 3) Αν αποτύχουν και τα δύο -> ΔΕΝ κάνουμε σιωπηλό default,
-      //    log error ώστε να το προσέξουμε αμέσως
+      //    log error + email alert ώστε να το προσέξουμε αμέσως
       const templateId: string | null =
         product?.metadata?.template_id || PRICE_TO_TEMPLATE[price.id] || null;
 
@@ -94,6 +95,12 @@ export async function POST(request: NextRequest) {
           "session:",
           session.id
         );
+        await alertAdmin("Άγνωστο προϊόν σε αγορά (webhook)", {
+          sessionId: session.id,
+          priceId: price.id,
+          productId: product?.id,
+          customerEmail,
+        });
       }
 
       // Έλεγχος αν υπάρχει ήδη
@@ -128,10 +135,24 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         console.error("Supabase error:", error);
+        await alertAdmin("Απέτυχε η δημιουργία memory box (webhook, Supabase)", {
+          sessionId: session.id,
+          customerEmail,
+          templateId,
+          supabaseError: error.message,
+        });
         return NextResponse.json({ error: "Failed to create memory box" }, { status: 500 });
       }
 
       console.log("Memory box created:", newBox?.id, "template:", templateId ?? "UNKNOWN");
+
+      if (!templateId) {
+        await alertAdmin("Memory box δημιουργήθηκε ΧΩΡΙΣ template (χρειάζεται χειροκίνητος έλεγχος)", {
+          memoryBoxId: newBox?.id,
+          sessionId: session.id,
+          customerEmail,
+        });
+      }
     }
 
     return NextResponse.json({ received: true });
