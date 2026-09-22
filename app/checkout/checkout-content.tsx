@@ -13,8 +13,8 @@ export default function CheckoutContent() {
       emoji: "🍼",
       name: "Τα Πρώτα Χρόνια",
       basePrice: "29.99",
-      normalLink: "https://buy.stripe.com/bJe8wP0ZBcau541cRaeZ20d",
-      giftLink: "https://buy.stripe.com/bJebJ137JgqK68518seZ20c",
+      normalLink: "https://buy.stripe.com/28E7sLdMnb6q2VTbN6eZ20n",
+      giftLink: "https://buy.stripe.com/6oU4gz0ZB6QagMJ2cweZ20o",
       features: [
         "Ψηφιακό λεύκωμα με όλες τις σημαντικές στιγμές από τα πρώτα χρόνια του μωρού σας",
         "Προσωποποιημένο ebook παραμύθι με ήρωα το παιδί σας",
@@ -27,8 +27,8 @@ export default function CheckoutContent() {
       emoji: "💑",
       name: "Εγώ και Εσύ",
       basePrice: "29.99",
-      normalLink: "https://buy.stripe.com/00w5kD7nZ7UegMJbN6eZ20b",
-      giftLink: "https://buy.stripe.com/28EcN57nZ0rMeEB2cweZ20a",
+      normalLink: "https://buy.stripe.com/eVq5kD9w78Yi8gd4kEeZ20p",
+      giftLink: "https://buy.stripe.com/bJeeVdgYzfmG685dVeeZ20q",
       features: [
         "Η ιστορία της σχέσης μας μέσα σε ένα Memory Box γεμάτο αναμνήσεις και φωτογραφίες",
         "Για να μείνει το συναίσθημα μας ζωντανό μέσα στο χρόνο",
@@ -42,8 +42,8 @@ export default function CheckoutContent() {
       emoji: "💍",
       name: "Ο Γάμος Μας",
       basePrice: "24.99",
-      normalLink: "https://buy.stripe.com/bJe5kDdMn3DY2VT4kEeZ20g",
-      giftLink: "https://buy.stripe.com/dRm28r8s3caufIF7wQeZ20h",
+      normalLink: "https://buy.stripe.com/8x228r5fR0rMgMJ5oIeZ20j",
+      giftLink: "https://buy.stripe.com/3cI00jbEfb6q8gdaJ2eZ20k",
       features: [
         "Ένα Memory Box γεμάτο με όλες τις στιγμές και τα συναισθήματα της πιο σημαντικής μέρας της ζωής σας",
         "Που δεν θέλετε να χαθούν μέσα στο χρόνο",
@@ -57,8 +57,8 @@ export default function CheckoutContent() {
       emoji: "✈️",
       name: "Travel Memory Box",
       basePrice: "29.99",
-      normalLink: "https://buy.stripe.com/7sYdR9aAb2zU5414kEeZ20f",
-      giftLink: "https://buy.stripe.com/eVq28rdMnb6qdAx5oIeZ20e",
+      normalLink: "https://buy.stripe.com/aFaeVdgYz1vQ3ZX9EYeZ20l",
+      giftLink: "https://buy.stripe.com/aFadR9dMn3DY7c904oeZ20m",
       features: [
         "20 ταξίδια με πλήρη templates",
         "Passport style σφραγίδες για κάθε προορισμό",
