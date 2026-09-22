@@ -15,6 +15,8 @@ const supabase = createClient(
   }
 );
 
+// Backward-compatible fallback mapping (χρησιμοποιείται μόνο αν
+// το Stripe Product δεν έχει metadata.template_id ορισμένο)
 const PRICE_TO_TEMPLATE: Record<string, string> = {
   "price_1UDPaRI6cMM6olNfCppcHZXp": "first-years",
   "price_1UDPNTI6cMM6olNfnkLRRjJG": "me-and-you",
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     const stripe = require("stripe")(stripeKey);
 
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items"],
+      expand: ["line_items.data.price.product"],
     });
 
     if (session.payment_status !== "paid") {
@@ -56,13 +58,24 @@ export async function POST(request: NextRequest) {
     }
 
     const customerEmail = session.customer_details?.email;
-    const priceId = session.line_items?.data[0]?.price?.id;
-    const templateId = priceId ? PRICE_TO_TEMPLATE[priceId] : undefined;
+    const price = session.line_items?.data[0]?.price;
+    const product = price?.product as any;
+
+    // 1) Προτεραιότητα στο metadata.template_id του Stripe Product
+    //    (ανθεκτικό σε νέα prices, coupons, discounts)
+    // 2) Fallback στο hardcoded mapping (παλιά prices)
+    // 3) Αν αποτύχουν και τα δύο -> ΔΕΝ κάνουμε σιωπηλό default
+    const templateId: string | null =
+      product?.metadata?.template_id ||
+      (price?.id ? PRICE_TO_TEMPLATE[price.id] : null) ||
+      null;
 
     if (!templateId) {
       console.error(
-        "Unknown price_id, no template mapping:",
-        priceId,
+        "UNKNOWN TEMPLATE — no mapping found. price:",
+        price?.id,
+        "product:",
+        product?.id,
         "session:",
         sessionId
       );
