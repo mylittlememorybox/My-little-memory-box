@@ -5,15 +5,15 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.ZOHO_SMTP_USER!,
-    pass: process.env.ZOHO_SMTP_PASS!,
+    user: process.env.ZOHO_EMAIL!,
+    pass: process.env.ZOHO_APP_PASSWORD!,
   },
 });
 
 export async function alertAdmin(subject: string, details: Record<string, any>) {
   try {
     await transporter.sendMail({
-      from: process.env.ZOHO_SMTP_USER,
+      from: process.env.ZOHO_EMAIL,
       to: "info@mylittlememorybox.gr",
       subject: `⚠️ ${subject}`,
       html: `
@@ -23,7 +23,6 @@ export async function alertAdmin(subject: string, details: Record<string, any>) 
       `,
     });
   } catch (err) {
-    // Αν αποτύχει το ίδιο το email alert, μην ρίξεις όλο το request εξαιτίας του
     console.error("Failed to send admin alert email:", err);
   }
 }
