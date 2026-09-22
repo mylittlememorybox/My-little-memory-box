@@ -16,15 +16,10 @@ const supabase = createClient(
 );
 
 const PRICE_TO_TEMPLATE: Record<string, string> = {
-  // Live prices
-  "price_1TTP6PI6cMM6olNfgyRPXeoy": "first-years",
-  "price_1TUvjoI6cMM6olNfqYPKW6f5": "me-and-you",
-  "price_1TUvpKI6cMM6olNfvpuY7qxq": "our-wedding",
-  "price_1TcS0TI6cMM6olNfBCI2S324": "travel",
-  // Test prices
-  "price_1TVZwoI6cMM6olNfrNnb8iZH": "first-years",
-  "price_1TVnLhI6cMM6olNfsjcnoeI2": "me-and-you",
-  "price_1TVnMzI6cMM6olNfkwq1wvwO": "our-wedding",
+  "price_1UDPaRI6cMM6olNfCppcHZXp": "first-years",
+  "price_1UDPNTI6cMM6olNfnkLRRjJG": "me-and-you",
+  "price_1UDPhrI6cMM6olNfDRWbFEPL": "our-wedding",
+  "price_1UDPe2I6cMM6olNf3Xl19WO2": "travel",
 };
 
 export async function POST(request: NextRequest) {
@@ -62,7 +57,20 @@ export async function POST(request: NextRequest) {
 
     const customerEmail = session.customer_details?.email;
     const priceId = session.line_items?.data[0]?.price?.id;
-    const templateId = PRICE_TO_TEMPLATE[priceId] || "first-years";
+    const templateId = priceId ? PRICE_TO_TEMPLATE[priceId] : undefined;
+
+    if (!templateId) {
+      console.error(
+        "Unknown price_id, no template mapping:",
+        priceId,
+        "session:",
+        sessionId
+      );
+      return NextResponse.json(
+        { error: "Unrecognized product. Please contact support." },
+        { status: 400 }
+      );
+    }
 
     const { data: existingBox } = await supabase
       .from("memory_boxes")
