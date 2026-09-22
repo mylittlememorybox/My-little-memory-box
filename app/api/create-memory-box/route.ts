@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { alertAdmin } from "@/lib/alert-admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -79,6 +80,12 @@ export async function POST(request: NextRequest) {
         "session:",
         sessionId
       );
+      await alertAdmin("Άγνωστο προϊόν σε αγορά (create-memory-box)", {
+        sessionId,
+        priceId: price?.id,
+        productId: product?.id,
+        customerEmail,
+      });
       return NextResponse.json(
         { error: "Unrecognized product. Please contact support." },
         { status: 400 }
@@ -118,6 +125,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Supabase error:", error);
+      await alertAdmin("Απέτυχε η δημιουργία memory box (Supabase)", {
+        sessionId,
+        customerEmail,
+        templateId,
+        supabaseError: error.message,
+      });
       return NextResponse.json(
         { error: "Failed to create memory box" },
         { status: 500 }
