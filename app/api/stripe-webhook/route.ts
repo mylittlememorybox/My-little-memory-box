@@ -24,6 +24,12 @@ const PRICE_TO_TEMPLATE: Record<string, string> = {
   "price_1UDPe2I6cMM6olNf3Xl19WO2": "travel",
 };
 
+// Τιμή-placeholder όταν δεν βρίσκουμε αντιστοίχιση, ώστε η εγγραφή
+// να μη σκάει ποτέ στο NOT NULL constraint του template_id.
+// Ένα memory box με "unknown" χρειάζεται χειροκίνητη διόρθωση,
+// αλλά τουλάχιστον ο πελάτης δεν χάνεται.
+const UNKNOWN_TEMPLATE_PLACEHOLDER = "unknown";
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
@@ -81,12 +87,14 @@ export async function POST(request: NextRequest) {
       // 1) Προτεραιότητα στο metadata.template_id του Stripe Product
       //    (ανθεκτικό σε νέα prices, coupons, discounts)
       // 2) Fallback στο hardcoded mapping (παλιά prices)
-      // 3) Αν αποτύχουν και τα δύο -> ΔΕΝ κάνουμε σιωπηλό default,
-      //    log error + email alert ώστε να το προσέξουμε αμέσως
-      const templateId: string | null =
+      // 3) Αν αποτύχουν και τα δύο -> χρησιμοποιούμε placeholder
+      //    ώστε η εγγραφή να μη σκάει, + log error + email alert
+      const resolvedTemplateId: string | null =
         product?.metadata?.template_id || PRICE_TO_TEMPLATE[price.id] || null;
 
-      if (!templateId) {
+      const templateIdForInsert = resolvedTemplateId || UNKNOWN_TEMPLATE_PLACEHOLDER;
+
+      if (!resolvedTemplateId) {
         console.error(
           "UNKNOWN TEMPLATE — no mapping found. price:",
           price.id,
@@ -119,12 +127,12 @@ export async function POST(request: NextRequest) {
       const { data: { users } } = await supabase.auth.admin.listUsers();
       const user = users?.find((u: any) => u.email === customerEmail);
 
-      // Δημιούργησε memory box
+      // Δημιούργησε memory box (ποτέ με null template_id — βλ. UNKNOWN_TEMPLATE_PLACEHOLDER)
       const { data: newBox, error } = await supabase
         .from("memory_boxes")
         .insert({
           user_id: user?.id || null,
-          template_id: templateId, // μπορεί να είναι null αν δεν βρέθηκε mapping — επίτηδες, για να το εντοπίσεις άμεσα
+          template_id: templateIdForInsert,
           status: "in_progress",
           story_status: "pending",
           gift_email: customerEmail,
@@ -138,16 +146,16 @@ export async function POST(request: NextRequest) {
         await alertAdmin("Απέτυχε η δημιουργία memory box (webhook, Supabase)", {
           sessionId: session.id,
           customerEmail,
-          templateId,
+          templateId: templateIdForInsert,
           supabaseError: error.message,
         });
         return NextResponse.json({ error: "Failed to create memory box" }, { status: 500 });
       }
 
-      console.log("Memory box created:", newBox?.id, "template:", templateId ?? "UNKNOWN");
+      console.log("Memory box created:", newBox?.id, "template:", templateIdForInsert);
 
-      if (!templateId) {
-        await alertAdmin("Memory box δημιουργήθηκε ΧΩΡΙΣ template (χρειάζεται χειροκίνητος έλεγχος)", {
+      if (!resolvedTemplateId) {
+        await alertAdmin("Memory box δημιουργήθηκε με ΑΓΝΩΣΤΟ template (χρειάζεται χειροκίνητος έλεγχος)", {
           memoryBoxId: newBox?.id,
           sessionId: session.id,
           customerEmail,
