@@ -59,6 +59,18 @@ export default function DashboardPage() {
       return;
     }
     setUser(user);
+
+    // Σύνδεσε τυχόν "ορφανά" memory boxes (ίδιο email, αλλά
+    // user_id ακόμα null — πχ. η αγορά έγινε πριν την εγγραφή,
+    // ή το webhook δεν βρήκε λογαριασμό τη στιγμή της πληρωμής)
+    if (user.email) {
+      await supabase
+        .from("memory_boxes")
+        .update({ user_id: user.id })
+        .is("user_id", null)
+        .eq("gift_email", user.email);
+    }
+
     await loadMemoryBoxes(user.id);
     await checkReviewPopup(user.id);
   };
@@ -185,9 +197,6 @@ export default function DashboardPage() {
             {memoryBoxes.map((box) => {
               const info = TEMPLATE_INFO[box.template_id];
 
-              // Άγνωστο/μη αναγνωρισμένο template_id (πχ. "unknown" από
-              // fallback στο webhook) — δείχνουμε φιλική κάρτα αντί για
-              // σπασμένο κουμπί/link
               if (!info) {
                 return (
                   <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg">
