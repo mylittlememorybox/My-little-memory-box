@@ -183,7 +183,34 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {memoryBoxes.map((box) => {
-              const info = TEMPLATE_INFO[box.template_id] || {};
+              const info = TEMPLATE_INFO[box.template_id];
+
+              // Άγνωστο/μη αναγνωρισμένο template_id (πχ. "unknown" από
+              // fallback στο webhook) — δείχνουμε φιλική κάρτα αντί για
+              // σπασμένο κουμπί/link
+              if (!info) {
+                return (
+                  <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg">
+                    <div className="h-2 bg-gradient-to-r from-[#B09880] to-[#C4A882]" />
+                    <div className="p-6 text-center">
+                      <div className="text-3xl mb-2">⏳</div>
+                      <h3 className="font-serif text-lg text-[#5C3820] mb-2">
+                        Το Memory Box σας ετοιμάζεται
+                      </h3>
+                      <p className="text-xs text-[#B09880] font-light mb-4">
+                        Χρειαζόμαστε λίγο χρόνο ακόμα για να το ενεργοποιήσουμε. Επικοινωνήστε μαζί μας και θα το λύσουμε άμεσα.
+                      </p>
+                      <a
+                        href="mailto:info@mylittlememorybox.gr"
+                        className="block w-full py-3 bg-[#C49090] text-white rounded-full font-light uppercase tracking-wider text-xs hover:opacity-90 transition-all text-center"
+                      >
+                        ✉️ Επικοινωνία
+                      </a>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div key={box.id} className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
                   <div className={`h-2 bg-gradient-to-r ${info.color}`} />
