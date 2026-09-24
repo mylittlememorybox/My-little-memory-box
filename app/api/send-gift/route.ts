@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
 
                   <img src="cid:giftqr" alt="QR Code" width="150" style="display:block;margin:0 auto 20px;width:150px;height:150px;border:1px solid #D4BC98;" />
 
-                  <a href="${giftUrl}" style="display:block;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#C49090 !important;background-color:#ffffff !important;border:1px solid #D4BC98;border-radius:999px;padding:10px 16px;text-decoration:none;word-break:break-all;margin-bottom:18px;">
+                  <a href="${giftUrl}" style="display:block;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#C49090 !important;background-color:#ffffff !important;border:1px solid #D4BC98;border-radius:14px;padding:12px 16px;text-decoration:none;word-break:break-all;line-height:1.5;text-align:center;margin-bottom:18px;">
                     ${giftUrl.replace("https://www.", "")}
                   </a>
 
