@@ -55,6 +55,21 @@ export default function GiftCardPage() {
     img.src = "/logo.png";
   }, []);
 
+  // Stop iOS Safari's automatic data-detection (email/phone/date) from
+  // adding its own styling — e.g. an underline/overline — around the
+  // plain "info@mylittlememorybox.gr" text in the card footer. This has
+  // to be a real <meta name="format-detection"> tag in <head>; it can't
+  // be done with inline styles alone.
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "format-detection";
+    meta.content = "telephone=no, date=no, address=no, email=no";
+    document.head.appendChild(meta);
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     import("qrcode")
