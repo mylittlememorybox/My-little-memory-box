@@ -4,7 +4,6 @@ import QRCode from "qrcode";
 import { createClient } from "@supabase/supabase-js";
 import { readFile } from "fs/promises";
 import path from "path";
-import Jimp from "jimp";
 
 export const dynamic = "force-dynamic";
 
@@ -13,36 +12,29 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Reads public/logo.png, makes near-white pixels transparent, and returns
-// a PNG buffer — same rule as the client-side canvas version on the gift
-// card page (r,g,b > 240 -> alpha 0), done here server-side with Jimp
-// since there is no DOM/canvas available in an API route. Falls back to
-// the original file untouched if anything goes wrong, so a broken/missing
-// file never breaks the email send.
-async function getTransparentLogoBuffer(): Promise<Buffer | null> {
-  try {
-    const logoPath = path.join(process.cwd(), "public", "logo.png");
-    const original = await readFile(logoPath);
-    const image = await Jimp.read(original);
-
-    image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (
-      _x,
-      _y,
-      idx
-    ) {
-      const r = this.bitmap.data[idx + 0];
-      const g = this.bitmap.data[idx + 1];
-      const b = this.bitmap.data[idx + 2];
-      if (r > 240 && g > 240 && b > 240) {
-        this.bitmap.data[idx + 3] = 0;
-      }
-    });
-
-    return await image.getBufferAsync(Jimp.MIME_PNG);
-  } catch (error) {
-    console.error("Logo background removal failed, sending without logo:", error);
-    return null;
+// Reads the already-transparent logo from public/logo-transparent.png.
+// No image processing here (no extra npm dependency needed) — the file
+// itself is pre-made with a transparent background. Falls back to the
+// regular public/logo.png if the transparent file isn't there yet, and
+// falls back to no logo at all (text only) if neither file exists —
+// so a missing/misnamed file can never block the gift email from sending.
+async function getLogoBuffer(): Promise<Buffer | null> {
+  const candidates = [
+    "logo-transparent.png",
+    "logo-transparent.PNG",
+    "logo-transparent.Png",
+    "logo.png",
+  ];
+  for (const filename of candidates) {
+    try {
+      const filePath = path.join(process.cwd(), "public", filename);
+      return await readFile(filePath);
+    } catch {
+      // try the next candidate
+    }
   }
+  console.error("No logo file found in /public (looked for logo-transparent.png/.PNG and logo.png) — sending email without a logo.");
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -109,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     const base64QR = qrCodeDataUrl.split(",")[1];
 
-    const logoBuffer = await getTransparentLogoBuffer();
+    const logoBuffer = await getLogoBuffer();
 
     const transporter = nodemailer.createTransport({
       host: "smtp.zoho.eu",
@@ -135,9 +127,9 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    // Only attach/reference the logo if the background-removal step
-    // actually produced a buffer — otherwise the email still sends fine,
-    // just without the logo image (never blocks the gift from going out).
+    // Only attach/reference the logo if a file was actually found —
+    // otherwise the email still sends fine, just with a text heading
+    // instead of the logo image (never blocks the gift from going out).
     if (logoBuffer) {
       attachments.push({
         filename: "logo.png",
