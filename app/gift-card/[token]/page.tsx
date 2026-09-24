@@ -11,8 +11,64 @@ export default function GiftCardPage() {
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Starts as the plain file; replaced with a background-stripped version
+  // once the canvas pass below finishes (falls back to this if it fails).
+  const [logoSrc, setLogoSrc] = useState("/logo.png");
   const cardWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Strip the logo's white background client-side, so it sits cleanly on
+  // the card both on-screen and in the downloaded image — without touching
+  // the actual /logo.png file in the repo.
+  useEffect(() => {
+    const img = new window.Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          // Near-white pixels become fully transparent; everything else
+          // (the illustration's own soft tones) is left untouched.
+          if (r > 240 && g > 240 && b > 240) {
+            data[i + 3] = 0;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        setLogoSrc(canvas.toDataURL("image/png"));
+      } catch (error) {
+        // Same-origin /logo.png should never hit a canvas security error,
+        // but if it ever does, we simply keep the original file as-is.
+        console.error("Logo background removal failed, using original file:", error);
+      }
+    };
+    img.onerror = () => {
+      console.error("Could not load /logo.png for background removal.");
+    };
+    img.src = "/logo.png";
+  }, []);
+
+  // Stop iOS Safari's automatic data-detection (email/phone/date) from
+  // adding its own styling — e.g. an underline/overline — around the
+  // plain "info@mylittlememorybox.gr" text in the card footer. This has
+  // to be a real <meta name="format-detection"> tag in <head>; it can't
+  // be done with inline styles alone.
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "format-detection";
+    meta.content = "telephone=no, date=no, address=no, email=no";
+    document.head.appendChild(meta);
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,30 +114,6 @@ export default function GiftCardPage() {
       alert("Σφάλμα κατά τη λήψη. Δοκιμάστε ξανά.");
     } finally {
       setDownloading(false);
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(giftUrl);
-      } else {
-        // Fallback for browsers/contexts without the async Clipboard API
-        const textarea = document.createElement("textarea");
-        textarea.value = giftUrl;
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Copy error:", error);
-      alert("Δεν ήταν δυνατή η αντιγραφή. Δοκιμάστε να επιλέξετε το link χειροκίνητα.");
     }
   };
 
@@ -149,7 +181,7 @@ export default function GiftCardPage() {
 
           <div style={{ padding: "40px 40px 0" }}>
             <img
-              src="/logo.png"
+              src={logoSrc}
               alt="My Little Memory Box"
               crossOrigin="anonymous"
               style={{ width: "128px", height: "auto", margin: "0 auto 14px", display: "block" }}
@@ -200,64 +232,34 @@ export default function GiftCardPage() {
               </div>
             )}
 
-            <div
+            {/*
+              Plain, real link — no "copy" button. A button baked into a
+              downloaded static image can never do anything when tapped,
+              and clipboard permissions are unreliable inside in-app
+              browsers (e.g. links opened from within Mail). Tapping this
+              text simply navigates to the gift page, which always works,
+              on both the live page and — once someone screenshots or
+              recognizes the text in the downloaded image — by typing it
+              in manually.
+            */}
+            <a
+              href={giftUrl}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                display: "block",
                 backgroundColor: "#ffffff",
                 border: "1px solid #D4BC98",
-                borderRadius: "999px",
-                padding: "9px 8px 9px 18px",
+                borderRadius: "16px",
+                padding: "14px 16px",
+                fontSize: "11.5px",
+                color: "#C49090",
+                textAlign: "center",
+                wordBreak: "break-all",
+                lineHeight: 1.5,
+                textDecoration: "none",
               }}
             >
-              <span
-                style={{
-                  flex: 1,
-                  fontSize: "11.5px",
-                  color: "#C49090",
-                  textAlign: "left",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {giftUrl.replace("https://www.", "")}
-              </span>
-              <button
-                type="button"
-                onClick={handleCopy}
-                aria-label="Αντιγραφή link"
-                style={{
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  backgroundColor: "#C49090",
-                  border: "none",
-                  borderRadius: "999px",
-                  padding: "8px 14px",
-                  fontFamily: "Georgia, serif",
-                  fontSize: "10.5px",
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  color: "#FBF3E7",
-                  cursor: "pointer",
-                }}
-              >
-                {copied ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBF3E7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                ) : (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBF3E7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="12" height="12" rx="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                )}
-                {copied ? "Αντιγράφηκε" : "Αντιγραφή"}
-              </button>
-            </div>
+              {giftUrl.replace("https://www.", "")}
+            </a>
 
             <div style={{ fontSize: "9.5px", color: "#B08D5E", marginTop: "24px", letterSpacing: "0.5px" }}>
               © {new Date().getFullYear()} My Little Memory Box · info@mylittlememorybox.gr
@@ -280,41 +282,20 @@ export default function GiftCardPage() {
           Άνοιγμα Δώρου
         </Link>
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={downloading || !qrCodeUrl}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-white border border-[#C4A882] text-[#C49090] uppercase tracking-[1.5px] text-xs hover:opacity-90 transition-all disabled:opacity-50"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C49090" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v12" />
-              <path d="m7 10 5 5 5-5" />
-              <path d="M5 21h14" />
-            </svg>
-            {downloading ? "Λήψη..." : "Λήψη ως Εικόνα"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-white border border-[#C4A882] text-[#C49090] uppercase tracking-[1.5px] text-xs hover:opacity-90 transition-all"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
-            {copied ? (
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C49090" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            ) : (
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C49090" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="12" height="12" rx="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            )}
-            {copied ? "Αντιγράφηκε" : "Αντιγραφή Link"}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={downloading || !qrCodeUrl}
+          className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-[#C4A882] text-[#C49090] uppercase tracking-[1.5px] text-xs hover:opacity-90 transition-all disabled:opacity-50"
+          style={{ fontFamily: "Georgia, serif" }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C49090" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v12" />
+            <path d="m7 10 5 5 5-5" />
+            <path d="M5 21h14" />
+          </svg>
+          {downloading ? "Λήψη..." : "Λήψη ως Εικόνα"}
+        </button>
       </div>
 
       <p className="text-xs text-[#C49090] opacity-60 font-light text-center" style={{ fontFamily: "Georgia, serif" }}>
