@@ -12,12 +12,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Reads the already-transparent logo from public/logo-transparent.png.
-// No image processing here (no extra npm dependency needed) — the file
-// itself is pre-made with a transparent background. Falls back to the
-// regular public/logo.png if the transparent file isn't there yet, and
-// falls back to no logo at all (text only) if neither file exists —
-// so a missing/misnamed file can never block the gift email from sending.
+// Reads the already-transparent logo from public/logo-transparent.png
+// (tries a few likely casings, since file managers/uploads sometimes
+// change extension case). Falls back to the regular public/logo.png if
+// the transparent file isn't there, and to no logo at all if neither
+// exists — so a missing/misnamed file can never block the gift email.
 async function getLogoBuffer(): Promise<Buffer | null> {
   const candidates = [
     "logo-transparent.png",
@@ -127,9 +126,6 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    // Only attach/reference the logo if a file was actually found —
-    // otherwise the email still sends fine, just with a text heading
-    // instead of the logo image (never blocks the gift from going out).
     if (logoBuffer) {
       attachments.push({
         filename: "logo.png",
@@ -138,24 +134,108 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // ---------------------------------------------------------------
+    // Email HTML below is built with NESTED TABLES on purpose, not
+    // flexbox/grid — Outlook desktop's rendering engine (Word) ignores
+    // flex/grid entirely, but table layout is universally supported.
+    // Decorative SVG icons are swapped for a plain "♡" character
+    // (works everywhere, no image needed) and for the QR/logo images,
+    // which ARE supported everywhere via cid attachments.
+    // The medallion sits directly above the card (not overlapping it)
+    // since negative-margin overlap is unreliable across mail clients.
+    // ---------------------------------------------------------------
+    const logoRowHtml = logoBuffer
+      ? `<img src="cid:giftlogo" alt="My Little Memory Box" width="100" style="display:block;margin:0 auto 12px;width:100px;height:auto;border:0;" />`
+      : `<div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#C49090;margin-bottom:12px;">My Little Memory Box</div>`;
+
     await transporter.sendMail({
       from: `"My Little Memory Box" <${process.env.ZOHO_EMAIL}>`,
       to: email,
       subject: "Το δώρο σας από το My Little Memory Box",
       html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background-color: #F9F2EC; padding: 40px; border-radius: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            ${logoBuffer ? '<img src="cid:giftlogo" alt="My Little Memory Box" style="width: 110px; height: auto; margin: 0 auto 14px; display: block;" />' : '<h1 style="color: #C49090; font-size: 28px; margin-bottom: 10px;">My Little Memory Box</h1>'}
-            <p style="color: #C4A882; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">Ένα ξεχωριστό δώρο για εσάς</p>
-          </div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#E8DDD4;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="500" cellpadding="0" cellspacing="0" style="width:500px;max-width:92%;">
 
-          <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 20px;">
-            <p style="color: #C49090; font-size: 18px; margin-bottom: 20px;">Έχετε λάβει ένα Memory Box!</p>
-            <img src="cid:giftqr" alt="QR Code" style="width: 250px; height: 250px; margin: 0 auto; display: block;" />
-            <p style="color: #B09880; font-size: 14px; margin-top: 20px;">Σκανάρετε τον κωδικό ή πατήστε το παρακάτω κουμπί για να ξεκινήσετε.</p>
-            <a href="${giftUrl}" style="display: inline-block; margin-top: 15px; background-color: #C49090; color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-size: 14px;">Άνοιγμα δώρου</a>
-          </div>
-        </div>
+        <!-- medallion -->
+        <tr>
+          <td align="center" style="padding-bottom:0;">
+            <table role="presentation" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="56" height="56" align="center" valign="middle" style="width:56px;height:56px;border-radius:50%;background-color:#C49090;border:2px solid #FBF3E7;font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#F2E8DE;">
+                  &#9825;
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- card -->
+        <tr>
+          <td style="background-color:#FBF3E7;border:1px solid #D4BC98;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+
+              <tr>
+                <td align="center" style="padding:28px 32px 0;font-family:Georgia,'Times New Roman',serif;">
+                  ${logoRowHtml}
+                  <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#A99075;margin-bottom:24px;">
+                    Ένα Δώρο Για Εσένα
+                  </div>
+                  <div style="font-size:28px;font-style:italic;color:#C49090;line-height:1.25;margin-bottom:28px;">
+                    Με αγάπη,<br />για εσένα
+                  </div>
+                </td>
+              </tr>
+
+              <!-- ticket-line divider -->
+              <tr>
+                <td style="padding:0 32px;">
+                  <div style="border-top:2px dashed #D4BC98;line-height:0;font-size:0;">&nbsp;</div>
+                </td>
+              </tr>
+
+              <tr>
+                <td align="center" style="padding:24px 32px 32px;font-family:Georgia,'Times New Roman',serif;">
+                  <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#B08D5E;margin-bottom:14px;">
+                    Σκανάρετε για να ανοίξετε το δώρο σας
+                  </div>
+
+                  <img src="cid:giftqr" alt="QR Code" width="150" style="display:block;margin:0 auto 20px;width:150px;height:150px;border:1px solid #D4BC98;" />
+
+                  <a href="${giftUrl}" style="display:block;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#C49090;background-color:#ffffff;border:1px solid #D4BC98;border-radius:999px;padding:10px 16px;text-decoration:none;word-break:break-all;margin-bottom:18px;">
+                    ${giftUrl.replace("https://www.", "")}
+                  </a>
+
+                  <div style="font-size:9px;color:#B08D5E;letter-spacing:0.5px;">
+                    © ${new Date().getFullYear()} My Little Memory Box · info@mylittlememorybox.gr
+                  </div>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+
+        <!-- open gift button -->
+        <tr>
+          <td align="center" style="padding-top:16px;">
+            <a href="${giftUrl}" style="display:inline-block;width:100%;box-sizing:border-box;background-color:#C49090;color:#ffffff;font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:16px;text-align:center;">
+              Άνοιγμα Δώρου
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="padding-top:14px;font-family:Georgia,'Times New Roman',serif;font-size:11px;color:#C49090;opacity:0.7;">
+            Στείλτε μέσω Viber, WhatsApp ή Instagram
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
       `,
       attachments,
     });
