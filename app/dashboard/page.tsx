@@ -60,15 +60,22 @@ export default function DashboardPage() {
     }
     setUser(user);
 
-    // Σύνδεσε τυχόν "ορφανά" memory boxes (ίδιο email, αλλά
-    // user_id ακόμα null — πχ. η αγορά έγινε πριν την εγγραφή,
-    // ή το webhook δεν βρήκε λογαριασμό τη στιγμή της πληρωμής)
+    // Σύνδεσε τυχόν "ορφανά" memory boxes (ίδιο email, user_id ακόμα null —
+    // πχ. η αγορά έγινε πριν την εγγραφή, ή το webhook δεν βρήκε λογαριασμό
+    // τη στιγμή της πληρωμής).
+    // ΣΗΜΑΝΤΙΚΟ: ποτέ δεν αγγίζουμε boxes με is_gift = true εδώ — αυτά
+    // συνδέονται ΜΟΝΟ μέσω του ρητού claim-gift flow (ο παραλήπτης πατάει
+    // το link του δώρου και κάνει claim ο ίδιος). Αν το κάναμε αυτόματα
+    // εδώ, ένα δώρο θα μπορούσε να "κλαπεί" πριν καν το ανοίξει ο
+    // πραγματικός παραλήπτης, απλά επειδή ο αγοραστής μπήκε στο δικό
+    // του dashboard με το ίδιο email που έβαλε ως gift_email.
     if (user.email) {
       await supabase
         .from("memory_boxes")
         .update({ user_id: user.id })
         .is("user_id", null)
-        .eq("gift_email", user.email);
+        .eq("gift_email", user.email)
+        .or("is_gift.is.null,is_gift.eq.false");
     }
 
     await loadMemoryBoxes(user.id);
