@@ -32,6 +32,14 @@ export async function POST(request: NextRequest) {
     // Το δώρο παραμένει ενεργό απεριόριστα — η μόνη προστασία είναι
     // η μία χρήση (βλ. claim-gift/route.ts: .is("user_id", null)),
     // που ήδη ακυρώνει το token μόλις γίνει claim μία φορά.
+    //
+    // ΔΙΟΡΘΩΣΗ 2: user_id: null — καθαρίζουμε ρητά τυχόν user_id που
+    // μπήκε ήδη στη δημιουργία του box (πχ. αν ο αγοραστής έχει ήδη
+    // λογαριασμό με το ίδιο email με το οποίο πλήρωσε). Χωρίς αυτό,
+    // ένα box που μόλις έγινε "δώρο" μπορεί να έχει ταυτόχρονα
+    // is_gift: true ΚΑΙ user_id γεμάτο, οπότε η σελίδα /gift/[token]
+    // δείχνει αμέσως "already used" ακόμα και πριν ο παραλήπτης
+    // προλάβει να το ανοίξει.
     const { data: updatedBox, error: updateError } = await supabase
       .from("memory_boxes")
       .update({
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
         gift_email: email,
         gift_expires_at: null,
         is_gift: true,
+        user_id: null,
       })
       .eq("id", memoryBoxId)
       .select()
